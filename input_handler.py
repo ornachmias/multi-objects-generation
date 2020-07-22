@@ -32,11 +32,14 @@ class InputHandler:
     class GenerationType(Enum):
         unknown = 0
         outlines = 1
+        bbox_replace = 2
 
         @staticmethod
         def parse(i):
             i = i.lower()
             if i == 'outlines':
                 return InputHandler.GenerationType.outlines
+            elif i == 'bboxreplace':
+                return InputHandler.GenerationType.bbox_replace
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))

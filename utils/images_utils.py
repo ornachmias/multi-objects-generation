@@ -66,6 +66,16 @@ class ImagesUtils:
         Image.fromarray(img).save(os.path.join(dirpath, filename + '.png'))
 
     @staticmethod
+    def bbox_to_mask(bbox_annotation, img_shape):
+        x_min = int(bbox_annotation[0])
+        x_max = int(bbox_annotation[2]) + x_min
+        y_min = int(bbox_annotation[1])
+        y_max = int(bbox_annotation[3]) + y_min
+        bbox_mask = np.zeros((img_shape[0], img_shape[1]))
+        bbox_mask[x_min:x_max, y_min:y_max] = 1
+        return bbox_mask
+
+    @staticmethod
     def __get_indices(i, ncols):
         col = int(i % ncols)
         row = math.floor(i / ncols)

@@ -11,10 +11,16 @@ class ObjectOutline(BaseGenerator):
         self._outlines_dir = os.path.join(root_path, 'outlines')
         os.makedirs(self._outlines_dir, exist_ok=True)
 
-    def process_image(self, img_id, img, mask):
+    def process_image(self, img_id, mask):
         color_map = ImagesUtils.segmentation_map_to_color_map(
             ImagesUtils.segmentation_mask_to_map(mask))
         ImagesUtils.save_image(color_map, self._outlines_dir, str(img_id))
+
+    def generate(self, count):
+        image_ids = self._dataset.get_image_ids()[:count]
+        for image_id in image_ids:
+            img, mask, _ = self._dataset.get_image(image_id)
+            self.process_image(image_id, mask)
 
 
 
