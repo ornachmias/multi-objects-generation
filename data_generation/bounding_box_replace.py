@@ -18,7 +18,12 @@ class BoundingBoxReplace(BaseGenerator):
         if not category_ids:
             category_ids = [c[0] for c in self._dataset.get_categories()]
 
+        category_names = {}
+        for c in self._dataset.get_categories():
+            category_names[c[0]] = c[1]
+
         for category_id in category_ids:
+            category_dir = os.path.join(self._bbox_replace_dir, category_names[category_id])
             image_ids = self._dataset.get_image_ids([category_id])[:count]
             ratios = self._get_images_bbox_ratio(image_ids, category_id)
             sorted_ratios = sorted(ratios, key=ratios.get)
@@ -28,8 +33,8 @@ class BoundingBoxReplace(BaseGenerator):
                 image_1, _, bboxes_1 = self._dataset.get_image(image_id_1, [category_id])
                 image_2, _, bboxes_2 = self._dataset.get_image(image_id_2, [category_id])
                 edited_image_1, edited_image_2 = self._replace_content(image_1, bboxes_1[0], image_2, bboxes_2[0])
-                ImagesUtils.save_image(edited_image_1, self._bbox_replace_dir, str(image_id_1))
-                ImagesUtils.save_image(edited_image_2, self._bbox_replace_dir, str(image_id_2))
+                ImagesUtils.save_image(edited_image_1, category_dir, str(image_id_1))
+                ImagesUtils.save_image(edited_image_2, category_dir, str(image_id_2))
 
     def _get_images_bbox_ratio(self, image_ids, category_id):
         result = {}

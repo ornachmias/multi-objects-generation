@@ -63,6 +63,7 @@ class ImagesUtils:
 
     @staticmethod
     def save_image(img, dirpath, filename):
+        os.makedirs(dirpath, exist_ok=True)
         Image.fromarray(img).save(os.path.join(dirpath, filename + '.png'))
 
     @staticmethod
