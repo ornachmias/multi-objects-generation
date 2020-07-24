@@ -4,6 +4,15 @@ from enum import Enum
 
 class InputHandler:
     @staticmethod
+    def print_params(args):
+        print('Received the following parameters: {}'.format(vars(args)))
+
+    @staticmethod
+    def validate_none(x):
+        if x is None:
+            raise argparse.ArgumentTypeError("{} is None but should be set.".format(x))
+
+    @staticmethod
     def validate_positive_integer(x):
         xt = int(x)
         if xt <= 0:
@@ -43,3 +52,15 @@ class InputHandler:
                 return InputHandler.GenerationType.bbox_replace
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
+
+    class ExploreOperation(Enum):
+        unknown = 0
+        show_image = 1
+
+        @staticmethod
+        def parse(i):
+            i = i.lower()
+            if i == 'show':
+                return InputHandler.ExploreOperation.show_image
+            else:
+                argparse.ArgumentTypeError("{} is an invalid explore operation.".format(i))

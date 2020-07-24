@@ -5,7 +5,7 @@ from data_generation.object_outline import ObjectOutline
 from datasets.mscoco import Mscoco
 from input_handler import InputHandler
 
-parser = argparse.ArgumentParser(description='Multi Object Generation')
+parser = argparse.ArgumentParser(description='Data Generation Tool')
 parser.add_argument('-d', '--dataset', choices=['mscoco'], default='mscoco')
 parser.add_argument('-t', '--generation_type', choices=['outlines', 'bboxreplace'], default='bboxreplace')
 parser.add_argument('-p', '--data_path', default='./data')
@@ -16,7 +16,8 @@ user_dataset = InputHandler.Dataset.parse(args.dataset)
 user_generation_type = InputHandler.GenerationType.parse(args.generation_type)
 user_count = InputHandler.validate_positive_integer(args.count)
 user_data_path = args.data_path
-print('Received the following parameters: {}'.format(vars(args)))
+
+InputHandler.print_params(args)
 
 dataset = None
 if user_dataset == InputHandler.Dataset.mscoco:
