@@ -77,6 +77,22 @@ class ImagesUtils:
         return bbox_mask
 
     @staticmethod
+    def replace_content_bbox(img1, bbox1, img2, bbox2):
+        img1 = Image.fromarray(img1)
+        img2 = Image.fromarray(img2)
+        bbox1 = (bbox1[0], bbox1[1], bbox1[0] + bbox1[2], bbox1[1] + bbox1[3])
+        bbox2 = (bbox2[0], bbox2[1], bbox2[0] + bbox2[2], bbox2[1] + bbox2[3])
+        region_image_1 = img1.crop(bbox1)
+        region_size_1 = region_image_1.size
+        region_image_2 = img2.crop(bbox2)
+        region_size_2 = region_image_2.size
+        region_image_1 = region_image_1.resize(region_size_2)
+        region_image_2 = region_image_2.resize(region_size_1)
+        img1.paste(region_image_2, bbox1)
+        img2.paste(region_image_1, bbox2)
+        return np.array(img1), np.array(img2)
+
+    @staticmethod
     def __get_indices(i, ncols):
         col = int(i % ncols)
         row = math.floor(i / ncols)
