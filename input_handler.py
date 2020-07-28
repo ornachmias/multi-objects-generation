@@ -42,6 +42,7 @@ class InputHandler:
         unknown = 0
         outlines = 1
         bbox_replace = 2
+        seg_replace = 3
 
         @staticmethod
         def parse(i):
@@ -50,6 +51,8 @@ class InputHandler:
                 return InputHandler.GenerationType.outlines
             elif i == 'bboxreplace':
                 return InputHandler.GenerationType.bbox_replace
+            elif i == 'segreplace':
+                return InputHandler.GenerationType.seg_replace
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
 

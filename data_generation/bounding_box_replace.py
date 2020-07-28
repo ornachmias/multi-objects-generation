@@ -7,11 +7,11 @@ from utils.images_utils import ImagesUtils
 
 
 class BoundingBoxReplace(BaseGenerator):
-    def __init__(self, root_path, dataset):
+    def __init__(self, root_path, dataset, output_dir_name='bbox_replace'):
         super().__init__(dataset)
 
-        self._bbox_replace_dir = os.path.join(root_path, 'bbox_replace')
-        os.makedirs(self._bbox_replace_dir, exist_ok=True)
+        self._output_dir = os.path.join(root_path, output_dir_name)
+        os.makedirs(self._output_dir, exist_ok=True)
 
         self._ratio_groups = 5
         self._batch_size = 20
@@ -23,7 +23,7 @@ class BoundingBoxReplace(BaseGenerator):
             used_images = {}
 
             while images_count < count:
-                category_dir = os.path.join(self._bbox_replace_dir, self._categories[category_id])
+                category_dir = os.path.join(self._output_dir, self._categories[category_id])
                 image_ids = self._dataset.get_image_ids([category_id])[images_count:self._batch_size + images_count]
                 images_categorization = self._categorize_images(image_ids, category_id)
 

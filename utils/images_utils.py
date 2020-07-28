@@ -93,6 +93,42 @@ class ImagesUtils:
         return np.array(img1), np.array(img2)
 
     @staticmethod
+    def replace_content_segmentation(img1, seg1, img2, seg2):
+        img1 = Image.fromarray(img1)
+        img2 = Image.fromarray(img2)
+
+        bbox1 = ImagesUtils.__get_bbox(seg1)
+        bbox2 = ImagesUtils.__get_bbox(seg2)
+
+        seg1 = Image.fromarray(seg1 * 255)
+        seg2 = Image.fromarray(seg2 * 255)
+
+        region_image_1 = img1.crop(bbox1)
+        region_size_1 = region_image_1.size
+        region_seg_1 = seg1.crop(bbox1)
+
+        region_image_2 = img2.crop(bbox2)
+        region_size_2 = region_image_2.size
+        region_seg_2 = seg2.crop(bbox2)
+
+        region_image_1 = region_image_1.resize(region_size_2)
+        region_seg_1 = region_seg_1.resize(region_size_2)
+
+        region_image_2 = region_image_2.resize(region_size_1)
+        region_seg_2 = region_seg_2.resize(region_size_1)
+
+        img1.paste(region_image_2, box=bbox1, mask=region_seg_2)
+        img2.paste(region_image_1, box=bbox2, mask=region_seg_1)
+        return np.array(img1), np.array(img2)
+
+    @staticmethod
+    def __get_bbox(seg):
+        seg_loc = np.where(seg == 1)
+        bbox = (np.min(seg_loc[1]), np.min(seg_loc[0]), np.max(seg_loc[1]), np.max(seg_loc[0]))
+        return bbox
+
+
+    @staticmethod
     def __get_indices(i, ncols):
         col = int(i % ncols)
         row = math.floor(i / ncols)
