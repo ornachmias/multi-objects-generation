@@ -2,6 +2,7 @@ import os
 
 from data_generation.base_generator import BaseGenerator
 from utils.images_utils import ImagesUtils
+from utils.segmentation_utils import SegmentationUtils
 
 
 class ObjectOutline(BaseGenerator):
@@ -12,8 +13,8 @@ class ObjectOutline(BaseGenerator):
         os.makedirs(self._outlines_dir, exist_ok=True)
 
     def process_image(self, img_id, mask):
-        color_map = ImagesUtils.segmentation_map_to_color_map(
-            ImagesUtils.segmentation_mask_to_map(mask))
+        color_map = SegmentationUtils.segmentation_map_to_color_map(
+            SegmentationUtils.segmentation_mask_to_map(mask))
         ImagesUtils.save_image(color_map, self._outlines_dir, str(img_id))
 
     def generate(self, count):

@@ -4,6 +4,7 @@ import numpy as np
 
 from data_generation.base_generator import BaseGenerator
 from utils.images_utils import ImagesUtils
+from utils.bbox_utils import BboxUtils
 
 
 class BoundingBoxReplace(BaseGenerator):
@@ -51,7 +52,7 @@ class BoundingBoxReplace(BaseGenerator):
         image_1, _, bboxes_1 = self._dataset.get_image(image_id_1, [category_id])
         image_2, _, bboxes_2 = self._dataset.get_image(image_id_2, [category_id])
         edited_image_1, edited_image_2 = \
-            ImagesUtils.replace_content_bbox(image_1, bboxes_1[0], image_2, bboxes_2[0])
+            BboxUtils.replace_content_bbox(image_1, bboxes_1[0], image_2, bboxes_2[0])
         ImagesUtils.save_image(edited_image_1, category_dir, str(image_id_1))
         ImagesUtils.save_image(edited_image_2, category_dir, str(image_id_2))
 
