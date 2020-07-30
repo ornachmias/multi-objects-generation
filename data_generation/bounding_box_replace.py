@@ -1,6 +1,10 @@
 import math
 import os
+import random
+import csv
+
 import numpy as np
+from PIL import Image
 
 from data_generation.base_generator import BaseGenerator
 from utils.images_utils import ImagesUtils
@@ -8,11 +12,17 @@ from utils.bbox_utils import BboxUtils
 
 
 class BoundingBoxReplace(BaseGenerator):
-    def __init__(self, root_path, dataset, output_dir_name='bbox_replace'):
+    def __init__(self, root_path, dataset, output_dir_name='bbox_replace', compare_random=False):
         super().__init__(dataset)
 
         self._output_dir = os.path.join(root_path, output_dir_name)
         os.makedirs(self._output_dir, exist_ok=True)
+
+        self._compare_random = compare_random
+        if self._compare_random:
+            self._compare_dir = os.path.join(self._output_dir, 'compare')
+            os.makedirs(self._compare_dir, exist_ok=True)
+            self._compare_metadata = os.path.join(self._compare_dir, 'metadata.csv')
 
         self._ratio_groups = 5
         self._batch_size = 20
@@ -52,9 +62,39 @@ class BoundingBoxReplace(BaseGenerator):
         image_1, _, bboxes_1 = self._dataset.get_image(image_id_1, [category_id])
         image_2, _, bboxes_2 = self._dataset.get_image(image_id_2, [category_id])
         edited_image_1, edited_image_2 = \
-            BboxUtils.replace_content_bbox(image_1, bboxes_1[0], image_2, bboxes_2[0])
+            self.replace_content_bbox(image_1, bboxes_1[0], image_2, bboxes_2[0])
+
         ImagesUtils.save_image(edited_image_1, category_dir, str(image_id_1))
         ImagesUtils.save_image(edited_image_2, category_dir, str(image_id_2))
+
+        if self._compare_random:
+            compare_output_dir = os.path.join(self._compare_dir, self._categories[category_id])
+            self._generate_comparison(image_id_1, image_id_2, image_1, edited_image_1,
+                                      image_2, bboxes_2[0], compare_output_dir)
+            self._generate_comparison(image_id_2, image_id_1, image_2, edited_image_2,
+                                      image_1, bboxes_1[0], compare_output_dir)
+
+    def _generate_comparison(self, image_id_1, image_id_2, image_1, edited_image_1, image_2, bbox_2, category_dir):
+        random_edit_1 = BboxUtils.random_place_bbox(image_1, image_2, bbox_2)
+        correct_image_index = random.randint(0, 1)
+        if correct_image_index == 0:
+            images = [edited_image_1, random_edit_1]
+        else:
+            images = [random_edit_1, edited_image_1]
+
+        couple = ImagesUtils.concat_images(images)
+        path = ImagesUtils.save_image(couple, category_dir, str(image_id_1))
+        self._log_comparison(image_id_1, image_id_2, path, correct_image_index)
+
+    def _log_comparison(self, image_id_1, image_id_2, path, correct_image_index):
+        if not os.path.exists(self._compare_metadata):
+            with open(self._compare_metadata, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['image_id_1', 'image_id_2', 'path', 'correct_image_index'])
+
+        with open(self._compare_metadata, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([image_id_1, image_id_2, path, correct_image_index])
 
     def _categorize_images(self, image_ids, category_id):
         images_metadata = {}
@@ -94,5 +134,20 @@ class BoundingBoxReplace(BaseGenerator):
                 categories[c[0]] = c[1]
 
         return categories
+
+    def replace_content_bbox(self, img1, bbox1, img2, bbox2):
+        img1 = Image.fromarray(img1)
+        img2 = Image.fromarray(img2)
+        bbox1 = (bbox1[0], bbox1[1], bbox1[0] + bbox1[2], bbox1[1] + bbox1[3])
+        bbox2 = (bbox2[0], bbox2[1], bbox2[0] + bbox2[2], bbox2[1] + bbox2[3])
+        region_image_1 = img1.crop(bbox1)
+        region_size_1 = region_image_1.size
+        region_image_2 = img2.crop(bbox2)
+        region_size_2 = region_image_2.size
+        region_image_1 = region_image_1.resize(region_size_2)
+        region_image_2 = region_image_2.resize(region_size_1)
+        img1.paste(region_image_2, bbox1)
+        img2.paste(region_image_1, bbox2)
+        return np.array(img1), np.array(img2)
 
 

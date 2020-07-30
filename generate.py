@@ -12,11 +12,15 @@ parser.add_argument('-d', '--dataset', choices=['mscoco'], default='mscoco')
 parser.add_argument('-t', '--generation_type', choices=['outlines', 'bboxreplace', 'segreplace'], default='segreplace')
 parser.add_argument('-p', '--data_path', default='./data')
 parser.add_argument('-c', '--count', default=20)
+parser.add_argument('-m', '--generate_compare', default='true')
+parser.add_argument('-b', '--back_object', choices=['none', 'black', 'inpaint'], default='inpaint')
 
 args = parser.parse_args()
 user_dataset = InputHandler.Dataset.parse(args.dataset)
 user_generation_type = InputHandler.GenerationType.parse(args.generation_type)
 user_count = InputHandler.validate_positive_integer(args.count)
+user_generate_comparison = InputHandler.str2bool(args.generate_compare)
+user_back_object = InputHandler.BackgroundObject.parse(args.back_object)
 user_data_path = args.data_path
 
 InputHandler.print_params(args)
@@ -31,8 +35,11 @@ generator = None
 if user_generation_type == InputHandler.GenerationType.outlines:
     generator = ObjectOutline(user_data_path, dataset)
 elif user_generation_type == InputHandler.GenerationType.bbox_replace:
-    generator = BoundingBoxReplace(user_data_path, dataset)
+    generator = BoundingBoxReplace(user_data_path, dataset, compare_random=user_generate_comparison)
 elif user_generation_type == InputHandler.GenerationType.seg_replace:
-    generator = SegmentationReplace(user_data_path, dataset)
+    cut_background = user_back_object == InputHandler.BackgroundObject.paint_black
+    inpaint = user_back_object == InputHandler.BackgroundObject.inpaint
+    generator = SegmentationReplace(user_data_path, dataset, compare_random=user_generate_comparison,
+                                    cut_background=cut_background, inpaint_cut=inpaint)
 
 generator.generate(user_count)

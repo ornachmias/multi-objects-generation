@@ -1,5 +1,9 @@
+import random
+
 import numpy as np
 from PIL import Image
+
+from utils.images_utils import ImagesUtils
 
 
 class BboxUtils:
@@ -14,17 +18,29 @@ class BboxUtils:
         return bbox_mask
 
     @staticmethod
-    def replace_content_bbox(img1, bbox1, img2, bbox2):
+    def random_place_bbox(img1, img2, bbox2):
         img1 = Image.fromarray(img1)
         img2 = Image.fromarray(img2)
-        bbox1 = (bbox1[0], bbox1[1], bbox1[0] + bbox1[2], bbox1[1] + bbox1[3])
+
+        bbox_width = bbox2[2]
+        bbox_height = bbox2[3]
         bbox2 = (bbox2[0], bbox2[1], bbox2[0] + bbox2[2], bbox2[1] + bbox2[3])
-        region_image_1 = img1.crop(bbox1)
-        region_size_1 = region_image_1.size
         region_image_2 = img2.crop(bbox2)
         region_size_2 = region_image_2.size
-        region_image_1 = region_image_1.resize(region_size_2)
-        region_image_2 = region_image_2.resize(region_size_1)
-        img1.paste(region_image_2, bbox1)
-        img2.paste(region_image_1, bbox2)
-        return np.array(img1), np.array(img2)
+
+        if (bbox_width / img1.size[0]) > (bbox_height / img1.size[1]):
+            max_resize_factor = img1.size[0] / bbox_width
+        else:
+            max_resize_factor = img1.size[1] / bbox_height
+
+        max_resize_factor *= 100
+        resize_factor = random.randint(1, int(max_resize_factor))
+        resize_factor /= 100
+
+        region_image_2 = region_image_2.resize((int(region_size_2[0] * resize_factor),
+                                                int(region_size_2[1] * resize_factor)))
+        x, y = ImagesUtils.get_random_position(region_image_2.size[0], region_image_2.size[1],
+                                               img1.size[0], img1.size[1])
+        img1.paste(region_image_2, (x, y))
+        return np.array(img1)
+

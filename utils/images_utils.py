@@ -1,4 +1,5 @@
 import os
+import random
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -47,7 +48,9 @@ class ImagesUtils:
     @staticmethod
     def save_image(img, dirpath, filename):
         os.makedirs(dirpath, exist_ok=True)
-        Image.fromarray(img).save(os.path.join(dirpath, filename + '.png'))
+        path = os.path.join(dirpath, filename + '.png')
+        Image.fromarray(img).save(path)
+        return path
 
     @staticmethod
     def concat_images(images):
@@ -69,6 +72,12 @@ class ImagesUtils:
         col = int(i % ncols)
         row = math.floor(i / ncols)
         return row, col
+
+    @staticmethod
+    def get_random_position(crop_width, crop_height, image_weight, image_height):
+        x_range = image_weight - crop_width
+        y_range = image_height - crop_height
+        return random.randint(0, x_range), random.randint(0, y_range)
 
 
 

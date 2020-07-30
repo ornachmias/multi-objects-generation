@@ -1,6 +1,10 @@
+import random
+
 import numpy as np
 from matplotlib import cm
 from PIL import Image
+
+from utils.images_utils import ImagesUtils
 
 
 class SegmentationUtils:
@@ -21,36 +25,41 @@ class SegmentationUtils:
         return new_map
 
     @staticmethod
-    def replace_content_segmentation(img1, seg1, img2, seg2):
+    def random_place_segmentation(img1, img2, seg2):
         img1 = Image.fromarray(img1)
         img2 = Image.fromarray(img2)
 
-        bbox1 = SegmentationUtils.__get_bbox(seg1)
-        bbox2 = SegmentationUtils.__get_bbox(seg2)
-
-        seg1 = Image.fromarray(seg1 * 255)
+        bbox2 = SegmentationUtils.get_bbox(seg2)
         seg2 = Image.fromarray(seg2 * 255)
 
-        region_image_1 = img1.crop(bbox1)
-        region_size_1 = region_image_1.size
-        region_seg_1 = seg1.crop(bbox1)
-
+        bbox_width = bbox2[2]
+        bbox_height = bbox2[3]
+        bbox2 = (bbox2[0], bbox2[1], bbox2[0] + bbox2[2], bbox2[1] + bbox2[3])
         region_image_2 = img2.crop(bbox2)
         region_size_2 = region_image_2.size
         region_seg_2 = seg2.crop(bbox2)
 
-        region_image_1 = region_image_1.resize(region_size_2)
-        region_seg_1 = region_seg_1.resize(region_size_2)
+        if (bbox_width / img1.size[0]) > (bbox_height / img1.size[1]):
+            max_resize_factor = img1.size[0] / bbox_width
+        else:
+            max_resize_factor = img1.size[1] / bbox_height
 
-        region_image_2 = region_image_2.resize(region_size_1)
-        region_seg_2 = region_seg_2.resize(region_size_1)
+        max_resize_factor *= 100
+        resize_factor = random.randint(1, int(max_resize_factor))
+        resize_factor /= 100
 
-        img1.paste(region_image_2, box=bbox1, mask=region_seg_2)
-        img2.paste(region_image_1, box=bbox2, mask=region_seg_1)
-        return np.array(img1), np.array(img2)
+        region_image_2 = region_image_2.resize((int(region_size_2[0] * resize_factor),
+                                                int(region_size_2[1] * resize_factor)))
+        region_seg_2 = region_seg_2.resize((int(region_size_2[0] * resize_factor),
+                                            int(region_size_2[1] * resize_factor)))
+
+        x, y = ImagesUtils.get_random_position(region_image_2.size[0], region_image_2.size[1],
+                                               img1.size[0], img1.size[1])
+        img1.paste(region_image_2, (x, y), mask=region_seg_2)
+        return np.array(img1)
 
     @staticmethod
-    def __get_bbox(seg):
+    def get_bbox(seg):
         seg_loc = np.where(seg == 1)
         bbox = (np.min(seg_loc[1]), np.min(seg_loc[0]), np.max(seg_loc[1]), np.max(seg_loc[0]))
         return bbox

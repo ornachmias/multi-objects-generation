@@ -4,6 +4,17 @@ from enum import Enum
 
 class InputHandler:
     @staticmethod
+    def str2bool(v):
+        if isinstance(v, bool):
+            return v
+        if v.lower() in ('yes', 'true', 't', 'y', '1'):
+            return True
+        elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
+
+    @staticmethod
     def print_params(args):
         print('Received the following parameters: {}'.format(vars(args)))
 
@@ -55,6 +66,24 @@ class InputHandler:
                 return InputHandler.GenerationType.seg_replace
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
+
+    class BackgroundObject(Enum):
+        unknown = 0
+        none = 1
+        paint_black = 2
+        inpaint = 3
+
+        @staticmethod
+        def parse(i):
+            i = i.lower()
+            if i == 'none':
+                return InputHandler.BackgroundObject.none
+            elif i == 'black':
+                return InputHandler.BackgroundObject.paint_black
+            elif i == 'inpaint':
+                return InputHandler.BackgroundObject.inpaint
+            else:
+                argparse.ArgumentTypeError("{} is an invalid background object operation.".format(i))
 
     class ExploreOperation(Enum):
         unknown = 0

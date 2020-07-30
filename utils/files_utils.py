@@ -3,7 +3,6 @@ import sys
 import tarfile
 import zipfile
 import requests
-from tqdm import tqdm
 from pathlib import Path
 
 
