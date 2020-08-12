@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image
 
 from data_generation.base_generator import BaseGenerator
+from datasets.mscoco import Mscoco
 from utils.images_utils import ImagesUtils
 from utils.bbox_utils import BboxUtils
 
@@ -14,6 +15,7 @@ from utils.bbox_utils import BboxUtils
 class BoundingBoxReplace(BaseGenerator):
     def __init__(self, root_path, dataset, output_dir_name='bbox_replace', compare_random=False):
         super().__init__(dataset)
+        assert isinstance(dataset, Mscoco), "Generator support only " + Mscoco.__name__ + " dataset"
 
         self._output_dir = os.path.join(root_path, output_dir_name)
         os.makedirs(self._output_dir, exist_ok=True)

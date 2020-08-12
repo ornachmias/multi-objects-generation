@@ -3,30 +3,34 @@ import sys
 import tarfile
 import zipfile
 import requests
+from urllib.request import urlretrieve
 from pathlib import Path
 
 
 class FilesUtils:
     @staticmethod
     def download(url, target_path):
-        with open(target_path, "wb") as f:
-            print("Downloading {}".format(url))
-            response = requests.get(url, stream=True)
-            total_length = response.headers.get('content-length')
+        if url.startswith('ftp://'):
+            urlretrieve(url, target_path, FilesUtils.reporthook)
+        else:
+            with open(target_path, "wb") as f:
+                print("Downloading {}".format(url))
+                response = requests.get(url, stream=True)
+                total_length = response.headers.get('content-length')
 
-            if total_length is None:  # no content length header
-                raise Exception('Failed to find "content-length" in url header.')
-            else:
-                dl = 0
-                total_length = int(total_length)
-                for data in response.iter_content(chunk_size=4096):
-                    dl += len(data)
-                    f.write(data)
-                    done = int(50 * dl / total_length)
-                    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
-                    sys.stdout.flush()
+                if total_length is None:  # no content length header
+                    raise Exception('Failed to find "content-length" in url header.')
+                else:
+                    dl = 0
+                    total_length = int(total_length)
+                    for data in response.iter_content(chunk_size=4096):
+                        dl += len(data)
+                        f.write(data)
+                        done = int(50 * dl / total_length)
+                        sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
+                        sys.stdout.flush()
 
-                print('')
+                    print('')
 
     @staticmethod
     def extract(file_path, sub_path=None):
@@ -59,3 +63,16 @@ class FilesUtils:
     def validate_path(path):
         if not os.path.exists(path):
             raise Exception('Path "{}" does not exists.'.format(path))
+
+    @staticmethod
+    def reporthook(block_num, block_size, total_size):
+        readsofar = block_num * block_size
+        if total_size > 0:
+            percent = readsofar * 1e2 / total_size
+            s = "\r%5.1f%% %*d / %d" % (
+                percent, len(str(total_size)), readsofar, total_size)
+            sys.stderr.write(s)
+            if readsofar >= total_size:
+                sys.stderr.write("\n")
+        else:
+            sys.stderr.write("read %d\n" % (readsofar,))
