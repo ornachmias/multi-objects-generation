@@ -5,7 +5,6 @@ import numpy as np
 import scipy.io as sio
 
 from utils.files_utils import FilesUtils
-from utils.matrix_utils import MatrixUtils
 
 
 class ObjectNet3D:
@@ -20,7 +19,6 @@ class ObjectNet3D:
         self._cad_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'CAD')
         self._images_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'Images')
         self._metadata_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'Image_sets')
-        self._cads_matrix = []
 
     def initialize(self, force_init=False):
         os.makedirs(self._object_3d_net_dir, exist_ok=True)
@@ -45,9 +43,6 @@ class ObjectNet3D:
         ObjectNet3D._download_and_extract(self._metadata_url, downloaded_target_path, self._metadata_dir,
                                           force_init)
 
-        cads_matrix_path = os.path.join(self._cad_dir, 'cads.mat')
-        self._cads_matrix = MatrixUtils.loadmat(cads_matrix_path)
-
     def get_categories(self):
         categories_path = os.path.join(self._metadata_dir, 'classes.txt')
         with open(categories_path) as f:
@@ -62,6 +57,10 @@ class ObjectNet3D:
         data = np.asarray(img, dtype=np.uint8)
 
         return data, record
+
+    def show_image(self, image_id):
+        pass
+
 
     @staticmethod
     def _download_and_extract(url, download_target_path, extracted_dir, force_init):
@@ -83,7 +82,7 @@ class ObjectNet3D:
             curr_dic['truncated'] = str(objects[i]['truncated'].item())
             curr_dic['occluded'] = str(objects[i]['occluded'].item())
             curr_dic['difficult'] = str(objects[i]['difficult'].item())
-            curr_dic['cad_index'] = str(objects[i]['cad_index'].item())
+            curr_dic['cad_index'] = objects[i]['cad_index'].item()
             curr_dic['viewpoint'] = objects[i]['viewpoint'][0][0]
             try:
                 curr_dic['azimuth'] = str(curr_dic['viewpoint']['azimuth'].item())
@@ -94,13 +93,11 @@ class ObjectNet3D:
             curr_dic['distance'] = str(curr_dic['viewpoint']['distance'].item())
             curr_dic['inplane_rotation'] = str(curr_dic['viewpoint']['theta'].item())
             curr_dic['bbox'] = tuple((objects[i]['bbox'][0]).astype('int'))
-            left, upper, right, lower = \
-                str(curr_dic['bbox'][0]), str(curr_dic['bbox'][1]), str(curr_dic['bbox'][2]), str(curr_dic['bbox'][3])
-            curr_dic['left'] = left
-            curr_dic['upper'] = upper
-            curr_dic['right'] = right
-            curr_dic['lower'] = lower
             result.append(curr_dic)
 
         return result
 
+
+dataset = ObjectNet3D('../data')
+dataset.initialize()
+dataset.show_image('n00000001_947')

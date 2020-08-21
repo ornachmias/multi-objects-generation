@@ -23,8 +23,11 @@ class SegmentationReplace(BoundingBoxReplace):
         image_2, seg_2, _ = self._dataset.get_image(image_id_2, [category_id])
         edited_image_1, edited_image_2 = \
             self.replace_content_segmentation(image_1, seg_1[:, :, 0], image_2, seg_2[:, :, 0])
-        ImagesUtils.save_image(edited_image_1, category_dir, str(image_id_1))
-        ImagesUtils.save_image(edited_image_2, category_dir, str(image_id_2))
+
+        path = ImagesUtils.save_image(edited_image_1, category_dir, '{}_edited'.format(str(image_id_1)))
+        self._log(image_id_1, path, is_correct=1)
+        path = ImagesUtils.save_image(edited_image_2, category_dir, '{}_edited'.format(str(image_id_2)))
+        self._log(image_id_2, path, is_correct=1)
 
         if self._compare_random:
             compare_output_dir = os.path.join(self._compare_dir, self._categories[category_id])
@@ -35,6 +38,10 @@ class SegmentationReplace(BoundingBoxReplace):
 
     def _generate_comparison(self, image_id_1, image_id_2, image_1, edited_image_1, image_2, seg_2, category_dir):
         random_edit_1 = SegmentationUtils.random_place_segmentation(image_1, image_2, seg_2)
+
+        path = ImagesUtils.save_image(random_edit_1, category_dir, '{}_random'.format(str(image_id_1)))
+        self._log(image_id_1, path, is_correct=0)
+
         correct_image_index = random.randint(0, 1)
         if correct_image_index == 0:
             images = [edited_image_1, random_edit_1]
@@ -42,7 +49,7 @@ class SegmentationReplace(BoundingBoxReplace):
             images = [random_edit_1, edited_image_1]
 
         couple = ImagesUtils.concat_images(images)
-        path = ImagesUtils.save_image(couple, category_dir, str(image_id_1))
+        path = ImagesUtils.save_image(couple, category_dir, '{}_{}'.format(str(image_id_1), str(image_id_2)))
         self._log_comparison(image_id_1, image_id_2, path, correct_image_index)
 
     def replace_content_segmentation(self, img1, seg1, img2, seg2):

@@ -9,11 +9,11 @@ from input_handler import InputHandler
 
 parser = argparse.ArgumentParser(description='Data Generation Tool')
 parser.add_argument('-d', '--dataset', choices=['mscoco'], default='mscoco')
-parser.add_argument('-t', '--generation_type', choices=['outlines', 'bboxreplace', 'segreplace'], default='segreplace')
+parser.add_argument('-t', '--generation_type', choices=['outlines', 'bboxreplace', 'segreplace'], default='bboxreplace')
 parser.add_argument('-p', '--data_path', default='./data')
-parser.add_argument('-c', '--count', default=20)
+parser.add_argument('-c', '--count', default=5)
 parser.add_argument('-m', '--generate_compare', default='true')
-parser.add_argument('-b', '--back_object', choices=['none', 'black', 'inpaint'], default='inpaint')
+parser.add_argument('-b', '--back_object', choices=['none', 'black', 'inpaint'], default='none')
 
 args = parser.parse_args()
 user_dataset = InputHandler.Dataset.parse(args.dataset)

@@ -19,6 +19,7 @@ class BoundingBoxReplace(BaseGenerator):
 
         self._output_dir = os.path.join(root_path, output_dir_name)
         os.makedirs(self._output_dir, exist_ok=True)
+        self._metadata = os.path.join(self._output_dir, 'metadata.csv')
 
         self._compare_random = compare_random
         if self._compare_random:
@@ -60,14 +61,46 @@ class BoundingBoxReplace(BaseGenerator):
                         used_images[image_id_2] = 1
                         images_count += 2
 
+        self._split_data()
+
+    def _split_data(self, train=0.7, eval=0.25, test=0.05):
+        assert train + eval + test == 1.0, 'Splits does not sum to 1'
+        with open(self._metadata, 'r') as metadata_file:
+            content = metadata_file.readlines()
+            headers = content[0]
+            content = content[1:]
+            random.shuffle(content)
+            total_size = len(content)
+            index = 0
+            curr_path = os.path.join(self._output_dir, 'metadata_train.csv')
+            with open(curr_path, 'w') as file:
+                size = int(total_size * train)
+                file.write(headers)
+                file.writelines(content[:size])
+                index += size
+
+            curr_path = os.path.join(self._output_dir, 'metadata_eval.csv')
+            with open(curr_path, 'w') as file:
+                size = int(total_size * eval)
+                file.write(headers)
+                file.writelines(content[index:index+size])
+                index += size
+
+            curr_path = os.path.join(self._output_dir, 'metadata_test.csv')
+            with open(curr_path, 'w') as file:
+                file.write(headers)
+                file.writelines(content[index:])
+
     def _generate_images(self, category_dir, category_id, image_id_1, image_id_2):
         image_1, _, bboxes_1 = self._dataset.get_image(image_id_1, [category_id])
         image_2, _, bboxes_2 = self._dataset.get_image(image_id_2, [category_id])
         edited_image_1, edited_image_2 = \
             self.replace_content_bbox(image_1, bboxes_1[0], image_2, bboxes_2[0])
 
-        ImagesUtils.save_image(edited_image_1, category_dir, str(image_id_1))
-        ImagesUtils.save_image(edited_image_2, category_dir, str(image_id_2))
+        path = ImagesUtils.save_image(edited_image_1, category_dir, '{}_edited'.format(str(image_id_1)))
+        self._log(image_id_1, path, is_correct=1)
+        path = ImagesUtils.save_image(edited_image_2, category_dir, '{}_edited'.format(str(image_id_2)))
+        self._log(image_id_2, path, is_correct=1)
 
         if self._compare_random:
             compare_output_dir = os.path.join(self._compare_dir, self._categories[category_id])
@@ -78,6 +111,10 @@ class BoundingBoxReplace(BaseGenerator):
 
     def _generate_comparison(self, image_id_1, image_id_2, image_1, edited_image_1, image_2, bbox_2, category_dir):
         random_edit_1 = BboxUtils.random_place_bbox(image_1, image_2, bbox_2)
+
+        path = ImagesUtils.save_image(random_edit_1, category_dir, '{}_random'.format(str(image_id_1)))
+        self._log(image_id_1, path, is_correct=0)
+
         correct_image_index = random.randint(0, 1)
         if correct_image_index == 0:
             images = [edited_image_1, random_edit_1]
@@ -85,8 +122,18 @@ class BoundingBoxReplace(BaseGenerator):
             images = [random_edit_1, edited_image_1]
 
         couple = ImagesUtils.concat_images(images)
-        path = ImagesUtils.save_image(couple, category_dir, str(image_id_1))
+        path = ImagesUtils.save_image(couple, category_dir, '{}_{}'.format(str(image_id_1), str(image_id_2)))
         self._log_comparison(image_id_1, image_id_2, path, correct_image_index)
+
+    def _log(self, image_id, path, is_correct=1):
+        if not os.path.exists(self._metadata):
+            with open(self._metadata, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['image_id', 'path', 'is_correct'])
+
+        with open(self._metadata, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([image_id, path, str(is_correct)])
 
     def _log_comparison(self, image_id_1, image_id_2, path, correct_image_index):
         if not os.path.exists(self._compare_metadata):

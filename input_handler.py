@@ -96,3 +96,15 @@ class InputHandler:
                 return InputHandler.ExploreOperation.show_image
             else:
                 argparse.ArgumentTypeError("{} is an invalid explore operation.".format(i))
+
+    class Model(Enum):
+        unknown = 0
+        inception_v3 = 1
+
+        @staticmethod
+        def parse(i):
+            i = i.lower()
+            if i == 'inception_v3':
+                return InputHandler.Model.inception_v3
+            else:
+                argparse.ArgumentTypeError("{} is an invalid model.".format(i))
