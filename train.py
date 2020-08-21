@@ -6,8 +6,8 @@ from models.inception_v3_classifier import InceptionV3Classifier
 
 parser = argparse.ArgumentParser(description='Data Classification Tool')
 parser.add_argument('-s', '--image_size', type=int, default=256)
-parser.add_argument('-t', '--train_metadata')
-parser.add_argument('-e', '--eval_metadata')
+parser.add_argument('-t', '--train_metadata', default='./data/bbox_replace/metadata_train.csv')
+parser.add_argument('-e', '--eval_metadata', default='./data/bbox_replace/metadata_eval.csv')
 parser.add_argument('-b', '--batch_size', type=int, default=20)
 parser.add_argument('-p', '--epochs', type=int, default=100)
 parser.add_argument('-l', '--logs_dir', default='./data/logs')

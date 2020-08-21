@@ -20,7 +20,9 @@ class InceptionV3Classifier:
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
+        df_train['is_correct'] = df_train['is_correct'].astype(str)
         df_eval = pd.read_csv(self.eval_metadata_path)
+        df_eval['is_correct'] = df_eval['is_correct'].astype(str)
         train_datagen = ImageDataGenerator(rescale=1./255.,
                                            rotation_range=40,
                                            width_shift_range=0.2,
@@ -47,7 +49,7 @@ class InceptionV3Classifier:
     def init(self):
         pre_trained_model = InceptionV3(input_shape=(self.image_size, self.image_size, 3),
                                         include_top=False, weights='imagenet')
-        for layer in pre_trained_model:
+        for layer in pre_trained_model.layers:
             layer.trainable = False
 
         x = layers.Flatten()(pre_trained_model.output)
