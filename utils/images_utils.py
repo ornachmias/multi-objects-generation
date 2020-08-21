@@ -49,6 +49,8 @@ class ImagesUtils:
     def save_image(img, dirpath, filename):
         os.makedirs(dirpath, exist_ok=True)
         path = os.path.join(dirpath, filename + '.png')
+        if os.path.exists(path):
+            return None
         Image.fromarray(img).save(path)
         return path
 

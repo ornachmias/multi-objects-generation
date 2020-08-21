@@ -19,6 +19,8 @@ class BoundingBoxReplace(BaseGenerator):
 
         self._output_dir = os.path.join(root_path, output_dir_name)
         os.makedirs(self._output_dir, exist_ok=True)
+        print('Setting {} output directory as {}'.format(self.__class__.__name__, self._output_dir))
+
         self._metadata = os.path.join(self._output_dir, 'metadata.csv')
 
         self._compare_random = compare_random
@@ -30,15 +32,25 @@ class BoundingBoxReplace(BaseGenerator):
         self._ratio_groups = 5
         self._batch_size = 20
         self._categories = self._get_dataset_categories()
+        print('Generating data for categories={}'.format(self._categories))
 
     def generate(self, count):
         for category_id in self._categories:
+            print('Generating data for category {}'.format(category_id))
             images_count = 0
+            index = 0
             used_images = {}
 
+            category_dir = os.path.join(self._output_dir, self._categories[category_id])
+
             while images_count < count:
-                category_dir = os.path.join(self._output_dir, self._categories[category_id])
-                image_ids = self._dataset.get_image_ids([category_id])[images_count:self._batch_size + images_count]
+                print('Current images in category: {}'.format(images_count))
+
+                image_ids = self._dataset.get_image_ids([category_id])[images_count:self._batch_size + index]
+                index += self._batch_size
+                if image_ids is None or len(image_ids) == 0:
+                    break
+
                 images_categorization = self._categorize_images(image_ids, category_id)
 
                 for ratio_category in images_categorization:
@@ -56,10 +68,16 @@ class BoundingBoxReplace(BaseGenerator):
                         if image_id_1 in used_images or image_id_2 in used_images:
                             continue
 
-                        self._generate_images(category_dir, category_id, image_id_1, image_id_2)
-                        used_images[image_id_1] = 1
-                        used_images[image_id_2] = 1
-                        images_count += 2
+                        try:
+                            self._generate_images(category_dir, category_id, image_id_1, image_id_2)
+                            used_images[image_id_1] = 1
+                            used_images[image_id_2] = 1
+                            images_count += 2
+                        except:
+                            print('Failed to generate images for ids: {}, {}'.format(image_id_1, image_id_2))
+
+
+            print('Generated {} images in category {}'.format(images_count, category_id))
 
         self._split_data()
 
@@ -98,9 +116,12 @@ class BoundingBoxReplace(BaseGenerator):
             self.replace_content_bbox(image_1, bboxes_1[0], image_2, bboxes_2[0])
 
         path = ImagesUtils.save_image(edited_image_1, category_dir, '{}_edited'.format(str(image_id_1)))
-        self._log(image_id_1, path, is_correct=1)
+        if path is not None:
+            self._log(image_id_1, path, is_correct=1)
+
         path = ImagesUtils.save_image(edited_image_2, category_dir, '{}_edited'.format(str(image_id_2)))
-        self._log(image_id_2, path, is_correct=1)
+        if path is not None:
+            self._log(image_id_2, path, is_correct=1)
 
         if self._compare_random:
             compare_output_dir = os.path.join(self._compare_dir, self._categories[category_id])
@@ -113,7 +134,8 @@ class BoundingBoxReplace(BaseGenerator):
         random_edit_1 = BboxUtils.random_place_bbox(image_1, image_2, bbox_2)
 
         path = ImagesUtils.save_image(random_edit_1, category_dir, '{}_random'.format(str(image_id_1)))
-        self._log(image_id_1, path, is_correct=0)
+        if path is not None:
+            self._log(image_id_1, path, is_correct=0)
 
         correct_image_index = random.randint(0, 1)
         if correct_image_index == 0:
@@ -123,7 +145,8 @@ class BoundingBoxReplace(BaseGenerator):
 
         couple = ImagesUtils.concat_images(images)
         path = ImagesUtils.save_image(couple, category_dir, '{}_{}'.format(str(image_id_1), str(image_id_2)))
-        self._log_comparison(image_id_1, image_id_2, path, correct_image_index)
+        if path is not None:
+            self._log_comparison(image_id_1, image_id_2, path, correct_image_index)
 
     def _log(self, image_id, path, is_correct=1):
         if not os.path.exists(self._metadata):
