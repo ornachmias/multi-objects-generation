@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from input_handler import InputHandler
 from models.callbacks.callbacks_handler import CallbacksHandler
@@ -13,8 +14,11 @@ parser.add_argument('-p', '--epochs', type=int, default=100)
 parser.add_argument('-l', '--logs_dir', default='./data/logs')
 parser.add_argument('-c', '--checkpoints_dir', default='./data/checkpoints')
 parser.add_argument('-m', '--model_name', default='inception_v3')
+parser.add_argument('-g', '--gpus', default='0')
 
 args = parser.parse_args()
+os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus
+
 user_model = InputHandler.Model.parse(args.model_name)
 
 model = None

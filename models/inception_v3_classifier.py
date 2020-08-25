@@ -61,10 +61,6 @@ class InceptionV3Classifier:
 
     def train(self, callbacks, epochs=100):
         train_generator, eval_generator = self.get_data_generators()
-        history = self.model.fit_generator(train_generator,
-                                           validation_data=eval_generator,
-                                           steps_per_epoch=100,
-                                           epochs=epochs,
-                                           validation_steps=50,
-                                           verbose=2, callbacks=callbacks)
+        history = self.model.fit(x=train_generator, validation_data=eval_generator,
+                                 batch_size=self.batch_size, epochs=epochs, verbose=1, callbacks=callbacks)
         return history
