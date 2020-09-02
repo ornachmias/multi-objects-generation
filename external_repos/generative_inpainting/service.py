@@ -12,12 +12,13 @@ from inpaint_model import InpaintCAModel
 
 app = flask.Flask(__name__)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-checkpoint_dir = '../../data/external/generative_inpainting/checkpoints'
 
 parser = argparse.ArgumentParser(description='Generative Inpainting Service')
 parser.add_argument('-g', '--gpus', default='0')
+parser.add_argument('-p', '--data_path', default='../../data')
 args = parser.parse_args()
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus
+checkpoint_dir = os.path.join(args.data_path, 'external', 'generative_inpainting', 'checkpoints')
 
 
 @app.route('/inpaint', methods=['POST'])
