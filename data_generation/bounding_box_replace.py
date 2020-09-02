@@ -76,7 +76,6 @@ class BoundingBoxReplace(BaseGenerator):
                         except:
                             print('Failed to generate images for ids: {}, {}'.format(image_id_1, image_id_2))
 
-
             print('Generated {} images in category {}'.format(images_count, category_id))
 
         self._split_data()
