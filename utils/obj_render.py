@@ -3,17 +3,16 @@ import os
 import trimesh
 import numpy as np
 from PIL import Image
-from trimesh.scene.lighting import Light, DirectionalLight
 
 
 class ObjRender:
-    def __init__(self, obj_path, record):
+    def __init__(self, obj_path, record, is_shapenet=False):
         if not os.path.exists(obj_path):
             raise Exception('Path {} does not exists'.format(obj_path))
 
         self.record = record
         self.meshes = trimesh.load(obj_path)
-        self.load_scene_params()
+        self.load_scene_params(is_shapenet)
 
     def render(self):
         img = Image.open(trimesh.util.wrap_as_stream(
@@ -23,7 +22,7 @@ class ObjRender:
     def show(self):
         self.meshes.show(smooth=True, background=[255, 255, 255, 0])
 
-    def load_scene_params(self):
+    def load_scene_params(self, is_shapenet):
         elevation = np.deg2rad(self.record['elevation'])
         azimuth = np.deg2rad(self.record['azimuth'])
         theta = np.deg2rad(self.record['inplane_rotation'])
@@ -32,6 +31,10 @@ class ObjRender:
 
         c = self.camera_center(azimuth, elevation, distance)
         azimuth, elevation = self.rotate_cord_system(azimuth, elevation)
+        if is_shapenet:
+            class_name = self.record['object_cls']
+            azimuth, elevation = self.adjust_shapenet(azimuth, elevation, class_name)
+
         r = self.rotation_matrix(azimuth, elevation)
         p = self.perspective_project_matrix(focal, r, c)
         p = np.vstack([p, [0, 0, 0, 1]])
@@ -40,6 +43,18 @@ class ObjRender:
         self.meshes.set_camera(angles=(0, 0, -theta), distance=distance*2)
         self.meshes.camera.z_far *= 100
         self.meshes.apply_transform(p)
+
+    def adjust_shapenet(self, azimuth, elevation, class_name):
+        if class_name in ['knife', 'skateboard']:
+            return azimuth + np.pi, elevation
+
+        if class_name == 'pillow':
+            return azimuth + (np.pi/2), elevation + (np.pi/2)
+
+        if class_name == 'telephone':
+            return azimuth + (np.pi/2), -elevation
+
+        return azimuth + (np.pi/2), elevation
 
     def camera_center(self, azimuth, elevation, distance):
         sin_a, cos_a = np.sin(azimuth), np.cos(azimuth)
