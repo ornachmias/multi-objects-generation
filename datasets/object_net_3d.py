@@ -20,6 +20,7 @@ class ObjectNet3D:
         self._images_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'Images')
         self._metadata_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'Image_sets')
         self._shapenet_dir = os.path.join(data_path, 'shape_net', 'ShapeNetCore.v1')
+        self._cad_matrix = None
 
     def initialize(self, force_init=False):
         os.makedirs(self._object_3d_net_dir, exist_ok=True)
@@ -44,6 +45,8 @@ class ObjectNet3D:
         ObjectNet3D._download_and_extract(self._metadata_url, downloaded_target_path, self._metadata_dir,
                                           force_init)
 
+        self._cad_matrix = sio.loadmat(os.path.join(self._cad_dir, 'cads.mat'))
+
     def get_categories(self):
         categories_path = os.path.join(self._metadata_dir, 'classes.txt')
         with open(categories_path) as f:
@@ -61,25 +64,26 @@ class ObjectNet3D:
     def show_image(self, image_id):
         img, records, img_size = self.get_image(image_id)
         for record in records:
-            if 'shapenet_dir' not in record:
-                continue
-
-            obj_path = os.path.join(self._shapenet_dir, record['shapenet_dir'], record['shapenet_sub_dir'], 'model.obj')
-            try:
-                obj_render = ObjRender(obj_path, record)
-                rendered = obj_render.render()
-                self.construct_image(img, rendered, record)
-            except Exception as e:
-                print('Failed to render 3D object. Reason: {}'.format(e))
+            off_path = self.get_cad_path(record['object_cls'], record['cad_index'])
+            obj_render = ObjRender(off_path, record)
+            rendered = obj_render.render()
+            self.construct_image(img, rendered, record)
 
         img.show()
 
     def construct_image(self, background_image, object_image, record):
-        # object_image = object_image.rotate(-1 * record['inplane_rotation'])
-        x = record['bbox'][0]
-        y = record['bbox'][1]
-        background_image.paste(object_image, (x, y), object_image)
+        x1 = record['bbox'][0]
+        y1 = record['bbox'][1]
+        x2 = record['bbox'][2]
+        y2 = record['bbox'][3]
+        resized = object_image.resize((x2-x1, y2-y1))
+        background_image.paste(resized, (x1, y1, x2, y2), resized)
         return background_image
+
+    def get_cad_path(self, class_name, cad_index):
+        file_name = '{}.off'.format(str(cad_index).zfill(2))
+        off_path = os.path.join(self._cad_dir, 'off', class_name, file_name)
+        return off_path
 
     @staticmethod
     def _download_and_extract(url, download_target_path, extracted_dir, force_init):
@@ -132,4 +136,4 @@ class ObjectNet3D:
 
 dataset = ObjectNet3D('../data')
 dataset.initialize()
-dataset.show_image('n02954340_7043')
+dataset.show_image('n00000002_120')
