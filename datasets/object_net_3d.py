@@ -1,5 +1,6 @@
 import os
 
+import trimesh
 from PIL import Image
 import scipy.io as sio
 
@@ -8,7 +9,7 @@ from utils.obj_render import ObjRender
 
 
 class ObjectNet3D:
-    def __init__(self, data_path, categories=[], use_shapenet=False):
+    def __init__(self, data_path, categories=[]):
         self._annotation_url = 'ftp://cs.stanford.edu/cs/cvgl/ObjectNet3D/ObjectNet3D_annotations.zip'
         self._images_url = 'ftp://cs.stanford.edu/cs/cvgl/ObjectNet3D/ObjectNet3D_images.zip'
         self._cad_url = 'ftp://cs.stanford.edu/cs/cvgl/ObjectNet3D/ObjectNet3D_cads.zip'
@@ -21,7 +22,6 @@ class ObjectNet3D:
         self._metadata_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'Image_sets')
         self._shapenet_dir = os.path.join(data_path, 'shape_net', 'ShapeNetCore.v1')
         self._cad_matrix = None
-        self._use_shapenet = use_shapenet
 
     def initialize(self, force_init=False):
         os.makedirs(self._object_3d_net_dir, exist_ok=True)
@@ -65,12 +65,10 @@ class ObjectNet3D:
     def show_image(self, image_id):
         img, records, img_size = self.get_image(image_id)
         for record in records:
-            if self._use_shapenet and 'shapenet_dir' not in record:
+            if 'shapenet_dir' not in record:
                 continue
-            elif self._use_shapenet and 'shapenet_dir' in record:
-                path = os.path.join(self._shapenet_dir, record['shapenet_dir'], record['shapenet_sub_dir'], 'model.obj')
             else:
-                path = self.get_cad_path(record['object_cls'], record['cad_index'])
+                path = os.path.join(self._shapenet_dir, record['shapenet_dir'], record['shapenet_sub_dir'], 'model.obj')
 
             obj_render = ObjRender(path, record)
             rendered = obj_render.render()
@@ -143,4 +141,4 @@ class ObjectNet3D:
 
 dataset = ObjectNet3D('../data')
 dataset.initialize()
-dataset.show_image('n02954340_7043')
+dataset.show_image('n03467517_14803')
