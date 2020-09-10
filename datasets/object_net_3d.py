@@ -21,7 +21,6 @@ class ObjectNet3D:
         self._images_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'Images')
         self._metadata_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'Image_sets')
         self._shapenet_dir = os.path.join(data_path, 'shape_net', 'ShapeNetCore.v1')
-        self._cad_matrix = None
 
     def initialize(self, force_init=False):
         os.makedirs(self._object_3d_net_dir, exist_ok=True)
@@ -45,8 +44,6 @@ class ObjectNet3D:
         downloaded_target_path = os.path.join(self._object_3d_net_dir, 'ObjectNet3D_image_sets.zip')
         ObjectNet3D._download_and_extract(self._metadata_url, downloaded_target_path, self._metadata_dir,
                                           force_init)
-
-        self._cad_matrix = sio.loadmat(os.path.join(self._cad_dir, 'cads.mat'))
 
     def get_categories(self):
         categories_path = os.path.join(self._metadata_dir, 'classes.txt')
