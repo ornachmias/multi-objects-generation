@@ -1,6 +1,5 @@
 import os
 
-import trimesh
 from PIL import Image
 import scipy.io as sio
 
@@ -81,11 +80,6 @@ class ObjectNet3D:
         resized = object_image.resize((x2-x1, y2-y1))
         background_image.paste(resized, (x1, y1, x2, y2), resized)
         return background_image
-
-    def get_cad_path(self, class_name, cad_index):
-        file_name = '{}.off'.format(str(cad_index).zfill(2))
-        off_path = os.path.join(self._cad_dir, 'off', class_name, file_name)
-        return off_path
 
     @staticmethod
     def _download_and_extract(url, download_target_path, extracted_dir, force_init):
