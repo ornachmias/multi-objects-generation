@@ -4,7 +4,6 @@ import trimesh
 import numpy as np
 from PIL import Image
 
-
 # Override trimesh internal implementation of euler_matrix to change euler angles structure
 old_euler_matrix = trimesh.transformations.euler_matrix
 
@@ -36,28 +35,30 @@ class ObjRender:
     def load_scene_params(self):
         azimuth, elevation, theta = self.get_angles()
         distance = self.record['distance']
-        focal = self.record['focal']
         self.meshes = trimesh.Scene(geometry=self.meshes)
         self.meshes.set_camera(angles=(azimuth, elevation, theta), distance=distance)
+        self.meshes.camera.K = self.intrinsics_params()
         self.meshes.camera.z_far *= 100
+        self.meshes.camera.z_near = 0.001
+        self.meshes.show()
 
     def adjust_shapenet(self, azimuth, elevation, class_name):
         if class_name in ['knife', 'skateboard']:
             return azimuth + np.pi, elevation
 
         if class_name == 'pillow':
-            return azimuth + (np.pi/2), elevation + (np.pi/2)
+            return azimuth + (np.pi / 2), elevation + (np.pi / 2)
 
         if class_name == 'telephone':
-            return azimuth + (np.pi/2), -elevation
+            return azimuth + (np.pi / 2), -elevation
 
-        return azimuth + (np.pi/2), elevation
+        return azimuth + (np.pi / 2), elevation
 
     def get_angles(self):
         azimuth = np.deg2rad(self.record['azimuth'])
         elevation = np.deg2rad(self.record['elevation'])
         theta = np.deg2rad(self.record['inplane_rotation'])
-        return azimuth + (np.pi/2), -elevation, -theta
+        return azimuth + (np.pi / 2), -elevation, -theta
 
     def crop_background(self, img):
         np_array = np.array(img)
@@ -68,3 +69,11 @@ class ObjRender:
         x1, y1, z1 = cords.max(axis=0) + 1
         cropped_box = np_array[x0:x1, y0:y1, z0:z1]
         return Image.fromarray(cropped_box, 'RGBA')
+
+    def intrinsics_params(self):
+        intrinsics = np.eye(3)
+        intrinsics[0, 0] = self.record['focal'] * self.record['viewport']
+        intrinsics[1, 1] = self.record['focal'] * self.record['viewport']
+        intrinsics[0, 2] = self.record['px']
+        intrinsics[1, 2] = self.record['py']
+        return intrinsics
