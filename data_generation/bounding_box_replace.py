@@ -147,26 +147,6 @@ class BoundingBoxReplace(BaseGenerator):
         if path is not None:
             self._log_comparison(image_id_1, image_id_2, path, correct_image_index)
 
-    def _log(self, image_id, path, is_correct=1):
-        if not os.path.exists(self._metadata):
-            with open(self._metadata, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['image_id', 'path', 'is_correct'])
-
-        with open(self._metadata, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([image_id, path, str(is_correct)])
-
-    def _log_comparison(self, image_id_1, image_id_2, path, correct_image_index):
-        if not os.path.exists(self._compare_metadata):
-            with open(self._compare_metadata, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['image_id_1', 'image_id_2', 'path', 'correct_image_index'])
-
-        with open(self._compare_metadata, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([image_id_1, image_id_2, path, correct_image_index])
-
     def _categorize_images(self, image_ids, category_id):
         images_metadata = {}
         ratios = []

@@ -76,3 +76,8 @@ class FilesUtils:
                 sys.stderr.write("\n")
         else:
             sys.stderr.write("read %d\n" % (readsofar,))
+
+    @staticmethod
+    def read_file(path):
+        with open(path) as f:
+            return f.read().splitlines()

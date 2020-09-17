@@ -40,12 +40,15 @@ class InputHandler:
     class Dataset(Enum):
         unknown = 0
         mscoco = 1
+        object_net_3d = 2
 
         @staticmethod
         def parse(i):
             i = i.lower()
             if i == 'mscoco':
                 return InputHandler.Dataset.mscoco
+            if i == 'object_net_3d':
+                return InputHandler.Dataset.object_net_3d
             else:
                 argparse.ArgumentTypeError("{} is an invalid dataset.".format(i))
 
@@ -54,6 +57,7 @@ class InputHandler:
         outlines = 1
         bbox_replace = 2
         seg_replace = 3
+        compose_3d = 4
 
         @staticmethod
         def parse(i):
@@ -64,6 +68,8 @@ class InputHandler:
                 return InputHandler.GenerationType.bbox_replace
             elif i == 'segreplace':
                 return InputHandler.GenerationType.seg_replace
+            elif i == 'compose3d':
+                return InputHandler.GenerationType.compose_3d
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
 

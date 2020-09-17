@@ -8,12 +8,11 @@ from utils.obj_render import ObjRender
 
 
 class ObjectNet3D:
-    def __init__(self, data_path, categories=[]):
+    def __init__(self, data_path):
         self._annotation_url = 'ftp://cs.stanford.edu/cs/cvgl/ObjectNet3D/ObjectNet3D_annotations.zip'
         self._images_url = 'ftp://cs.stanford.edu/cs/cvgl/ObjectNet3D/ObjectNet3D_images.zip'
         self._cad_url = 'ftp://cs.stanford.edu/cs/cvgl/ObjectNet3D/ObjectNet3D_cads.zip'
         self._metadata_url = 'ftp://cs.stanford.edu/cs/cvgl/ObjectNet3D/ObjectNet3D_image_sets.zip'
-        self._categories = categories
         self._object_3d_net_dir = os.path.join(data_path, 'object_3d_net')
         self._annotation_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'Annotations')
         self._cad_dir = os.path.join(self._object_3d_net_dir, 'ObjectNet3D', 'CAD')
@@ -49,7 +48,13 @@ class ObjectNet3D:
         with open(categories_path) as f:
             return f.read().splitlines()
 
-    def get_image(self, image_id, category_ids=None):
+    def get_image_ids(self):
+        train_path = os.path.join(self._metadata_dir, 'train.txt')
+        eval_path = os.path.join(self._metadata_dir, 'val.txt')
+        test_path = os.path.join(self._metadata_dir, 'test.txt')
+        return FilesUtils.read_file(train_path), FilesUtils.read_file(eval_path), FilesUtils.read_file(test_path)
+
+    def get_image(self, image_id):
         annotation_path = os.path.join(self._annotation_dir, image_id + '.mat')
         records, img_file_name, img_size = ObjectNet3D._parse_matrix(sio.loadmat(annotation_path))
 
@@ -57,6 +62,28 @@ class ObjectNet3D:
         img = Image.open(image_path)
 
         return img, records, img_size
+
+    def get_background_image(self, image_id):
+        annotation_path = os.path.join(self._annotation_dir, image_id + '.mat')
+        records, img_file_name, img_size = ObjectNet3D._parse_matrix(sio.loadmat(annotation_path))
+
+        image_path = os.path.join(self._images_dir, img_file_name)
+        return Image.open(image_path)
+
+    def get_renders(self, image_id):
+        result = []
+        _, records, _ = self.get_image(image_id)
+        for record in records:
+            if 'shapenet_dir' not in record:
+                continue
+            else:
+                path = os.path.join(self._shapenet_dir, record['shapenet_dir'], record['shapenet_sub_dir'], 'model.obj')
+
+            obj_render = ObjRender(path, record)
+            rendered = obj_render.render()
+            result.append((record, rendered))
+
+        return result
 
     def show_image(self, image_id):
         img, records, img_size = self.get_image(image_id)
@@ -128,8 +155,3 @@ class ObjectNet3D:
             result.append(curr_dic)
 
         return result, img_file_name, img_size
-
-
-dataset = ObjectNet3D('../data')
-dataset.initialize()
-dataset.show_image('n03467517_14803')

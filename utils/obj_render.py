@@ -1,7 +1,7 @@
 import os
 
-import trimesh
 import numpy as np
+import trimesh
 from PIL import Image
 
 # Override trimesh internal implementation of euler_matrix to change euler angles structure
@@ -26,7 +26,7 @@ class ObjRender:
 
     def render(self):
         img = Image.open(trimesh.util.wrap_as_stream(
-            self.meshes.save_image(resolution=None, background=[255, 255, 255, 0])))
+            self.meshes.save_image(resolution=(1000, 1000), background=[255, 255, 255, 0], flags={'cull': True})))
         return self.crop_background(img)
 
     def show(self):
@@ -34,25 +34,25 @@ class ObjRender:
 
     def load_scene_params(self):
         azimuth, elevation, theta = self.get_angles()
+        azimuth, elevation = self.adjust_shapenet(azimuth, elevation, self.record['object_cls'])
         distance = self.record['distance']
         self.meshes = trimesh.Scene(geometry=self.meshes)
         self.meshes.set_camera(angles=(azimuth, elevation, theta), distance=distance)
         self.meshes.camera.K = self.intrinsics_params()
         self.meshes.camera.z_far *= 100
         self.meshes.camera.z_near = 0.001
-        self.meshes.show()
 
     def adjust_shapenet(self, azimuth, elevation, class_name):
         if class_name in ['knife', 'skateboard']:
-            return azimuth + np.pi, elevation
+            return azimuth + (np.pi / 2), elevation
 
         if class_name == 'pillow':
-            return azimuth + (np.pi / 2), elevation + (np.pi / 2)
+            return azimuth, elevation + (np.pi / 2)
 
         if class_name == 'telephone':
-            return azimuth + (np.pi / 2), -elevation
+            return azimuth, -elevation
 
-        return azimuth + (np.pi / 2), elevation
+        return azimuth, elevation
 
     def get_angles(self):
         azimuth = np.deg2rad(self.record['azimuth'])
