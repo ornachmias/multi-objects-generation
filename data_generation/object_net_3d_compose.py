@@ -84,7 +84,7 @@ class ObjectNet3DCompose(BaseGenerator):
         if self._inpaint_cut:
             mask = np.zeros((img.size[0], img.size[1]))
             mask[bbox[0]:bbox[2], bbox[1]:bbox[3]] = 1
-            api_result = self._inpaint_api.inpaint(np.array(img), np.array(mask))
+            api_result = self._inpaint_api.inpaint(np.array(img), np.array(mask).T)
             img = Image.fromarray(api_result)
 
         return img
