@@ -25,7 +25,7 @@ checkpoint_dir = os.path.join(args.data_path, 'external', 'generative_inpainting
 def inpaint():
     FLAGS = ng.Config('inpaint.yml')
 
-    image = np.array(request.json['image'])[:, :, :3]
+    image = np.array(request.json['image'])
     mask = np.array(request.json['mask'])
     mask = np.dstack([mask, mask, mask])
 
