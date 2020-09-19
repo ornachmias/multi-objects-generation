@@ -13,9 +13,9 @@ parser = argparse.ArgumentParser(description='Data Generation Tool')
 parser.add_argument('-d', '--dataset', choices=['mscoco', 'object_net_3d'], default='object_net_3d')
 parser.add_argument('-t', '--generation_type', choices=['outlines', 'bboxreplace', 'segreplace', 'compose3d'], default='compose3d')
 parser.add_argument('-p', '--data_path', default='./data')
-parser.add_argument('-c', '--count', default=20)
+parser.add_argument('-c', '--count', default=5)
 parser.add_argument('-m', '--generate_compare', default='true')
-parser.add_argument('-b', '--back_object', choices=['none', 'black', 'inpaint'], default='none')
+parser.add_argument('-b', '--back_object', choices=['none', 'black', 'inpaint'], default='black')
 
 args = parser.parse_args()
 user_dataset = InputHandler.Dataset.parse(args.dataset)
@@ -36,16 +36,18 @@ elif user_dataset == InputHandler.Dataset.object_net_3d:
 dataset.initialize()
 
 generator = None
+cut_background = user_back_object == InputHandler.BackgroundObject.paint_black
+inpaint = user_back_object == InputHandler.BackgroundObject.inpaint
+
 if user_generation_type == InputHandler.GenerationType.outlines:
     generator = ObjectOutline(user_data_path, dataset)
 elif user_generation_type == InputHandler.GenerationType.bbox_replace:
     generator = BoundingBoxReplace(user_data_path, dataset, compare_random=user_generate_comparison)
 elif user_generation_type == InputHandler.GenerationType.seg_replace:
-    cut_background = user_back_object == InputHandler.BackgroundObject.paint_black
-    inpaint = user_back_object == InputHandler.BackgroundObject.inpaint
     generator = SegmentationReplace(user_data_path, dataset, compare_random=user_generate_comparison,
                                     cut_background=cut_background, inpaint_cut=inpaint)
 elif user_generation_type == InputHandler.GenerationType.compose_3d:
-    generator = ObjectNet3DCompose(user_data_path, dataset, compare_random=user_generate_comparison)
+    generator = ObjectNet3DCompose(user_data_path, dataset, compare_random=user_generate_comparison,
+                                   cut_background=cut_background, inpaint_cut=inpaint)
 
 generator.generate(user_count)

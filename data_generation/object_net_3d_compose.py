@@ -1,16 +1,18 @@
-import csv
 import os
 import random
+import traceback
 
 import numpy as np
+from PIL import Image
 
+from api.generative_inpainting_api import GenerativeInpaintingApi
 from data_generation.base_generator import BaseGenerator
 from datasets.object_net_3d import ObjectNet3D
 from utils.images_utils import ImagesUtils
 
 
 class ObjectNet3DCompose(BaseGenerator):
-    def __init__(self, root_path, dataset, compare_random=False):
+    def __init__(self, root_path, dataset, compare_random=False, cut_background=False, inpaint_cut=False):
         super().__init__(dataset)
         assert isinstance(dataset, ObjectNet3D), "Generator support only " + ObjectNet3D.__name__ + " dataset"
 
@@ -24,6 +26,11 @@ class ObjectNet3DCompose(BaseGenerator):
             self._compare_dir = os.path.join(self._output_dir, 'compare')
             os.makedirs(self._compare_dir, exist_ok=True)
             self._compare_metadata = os.path.join(self._compare_dir, 'metadata.csv')
+
+        self._cut_background = cut_background
+        self._inpaint_cut = inpaint_cut
+        if inpaint_cut:
+            self._inpaint_api = GenerativeInpaintingApi(root_path)
 
     def generate(self, count):
         train_ids, _, _ = self._dataset.get_image_ids()
@@ -42,9 +49,10 @@ class ObjectNet3DCompose(BaseGenerator):
             for record, render in renders:
                 try:
                     render = render.crop()
-                    background_image = self._dataset.get_background_image(image_id)
                     x1, y1 = record['bbox'][0], record['bbox'][1]
                     x2, y2 = record['bbox'][2], record['bbox'][3]
+                    background_image = self._dataset.get_background_image(image_id)
+                    background_image = self.color_background(background_image, (x1, y1, x2, y2))
                     correct_image = self.construct_image(background_image, render, x1, y1, x2, y2)
                     path = ImagesUtils.save_image(correct_image, self._output_dir,
                                                   '{}_{}_edited'.format(image_id, str(generated_image_index)))
@@ -52,6 +60,7 @@ class ObjectNet3DCompose(BaseGenerator):
                         self._log(image_id, path, is_correct=1)
 
                     background_image = self._dataset.get_background_image(image_id)
+                    background_image = self.color_background(background_image, (x1, y1, x2, y2))
                     random_image = self.random_place(background_image, render, (x1, y1, x2, y2))
                     path = ImagesUtils.save_image(random_image, self._output_dir,
                                                   '{}_{}_random'.format(image_id, str(generated_image_index)))
@@ -63,10 +72,22 @@ class ObjectNet3DCompose(BaseGenerator):
                         self._generate_comparison(correct_image, random_image, temp_id + '_compare', temp_id)
 
                     images_count += 1
-                except:
-                    print('Failed to generate images for image id: {}'.format(image_id))
+                except Exception as e:
+                    traceback.print_exc()
 
             i += 1
+
+    def color_background(self, img, bbox):
+        if self._cut_background or self._inpaint_cut:
+            img.paste((0, 0, 0), box=bbox)
+
+        if self._inpaint_cut:
+            mask = np.zeros((img.size[0], img.size[1]))
+            mask[bbox[0]:bbox[2], bbox[1]:bbox[3]] = 1
+            api_result = self._inpaint_api.inpaint(np.array(img), np.array(mask))
+            img = Image.fromarray(api_result)
+
+        return img
 
     def _generate_comparison(self, correct_image, random_image, file_name, image_id):
         correct_image_index = random.randint(0, 1)
@@ -95,7 +116,7 @@ class ObjectNet3DCompose(BaseGenerator):
             max_resize_factor = img.size[1] / render.size[1]
 
         max_resize_factor *= 100
-        resize_factor = random.randint(1, int(max_resize_factor))
+        resize_factor = random.randint(int(max_resize_factor / 2), int(max_resize_factor))
         resize_factor /= 100
 
         region_render = render.resize((int(render.size[0] * resize_factor),

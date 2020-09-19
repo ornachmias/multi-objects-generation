@@ -14,7 +14,7 @@ app = flask.Flask(__name__)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 parser = argparse.ArgumentParser(description='Generative Inpainting Service')
-parser.add_argument('-g', '--gpus', default='0')
+parser.add_argument('-g', '--gpus', default=None)
 parser.add_argument('-p', '--data_path', default='../../data')
 args = parser.parse_args()
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus

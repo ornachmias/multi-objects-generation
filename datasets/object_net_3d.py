@@ -126,32 +126,35 @@ class ObjectNet3D:
 
         objects = record['objects'][0]
         for i in range(objects.shape[0]):
-            curr_dic = {}
-            if objects['shapenet'][i]:
-                curr_dic['shapenet_dir'] = objects['shapenet'][i]['synset'][0][0][0]
-                curr_dic['shapenet_sub_dir'] = objects['shapenet'][i]['selected'][0][0][0][0][0]
-            curr_dic['object_cls'] = objects[i]['class'].item()
-            curr_dic['truncated'] = str(objects[i]['truncated'].item())
-            curr_dic['occluded'] = str(objects[i]['occluded'].item())
-            curr_dic['difficult'] = str(objects[i]['difficult'].item())
-            curr_dic['cad_index'] = objects[i]['cad_index'].item()
-            curr_dic['viewpoint'] = objects[i]['viewpoint'][0][0]
-            curr_dic['px'] = curr_dic['viewpoint']['px'][0][0]
-            curr_dic['py'] = curr_dic['viewpoint']['py'][0][0]
-            curr_dic['img_size'] = img_size
             try:
-                curr_dic['azimuth'] = str(curr_dic['viewpoint']['azimuth'].item())
-                curr_dic['elevation'] = str(curr_dic['viewpoint']['elevation'].item())
+                curr_dic = {}
+                if objects['shapenet'][i]:
+                    curr_dic['shapenet_dir'] = objects['shapenet'][i]['synset'][0][0][0]
+                    curr_dic['shapenet_sub_dir'] = objects['shapenet'][i]['selected'][0][0][0][0][0]
+                curr_dic['object_cls'] = objects[i]['class'].item()
+                curr_dic['truncated'] = str(objects[i]['truncated'].item())
+                curr_dic['occluded'] = str(objects[i]['occluded'].item())
+                curr_dic['difficult'] = str(objects[i]['difficult'].item())
+                curr_dic['cad_index'] = objects[i]['cad_index'].item()
+                curr_dic['viewpoint'] = objects[i]['viewpoint'][0][0]
+                curr_dic['px'] = curr_dic['viewpoint']['px'][0][0]
+                curr_dic['py'] = curr_dic['viewpoint']['py'][0][0]
+                curr_dic['img_size'] = img_size
+                try:
+                    curr_dic['azimuth'] = str(curr_dic['viewpoint']['azimuth'].item())
+                    curr_dic['elevation'] = str(curr_dic['viewpoint']['elevation'].item())
+                except:
+                    curr_dic['azimuth'] = str(curr_dic['viewpoint']['azimuth_coarse'].item())
+                    curr_dic['elevation'] = str(curr_dic['viewpoint']['elevation_coarse'].item())
+                curr_dic['azimuth'] = int(float(curr_dic['azimuth']))
+                curr_dic['elevation'] = int(float(curr_dic['elevation']))
+                curr_dic['distance'] = float(str(curr_dic['viewpoint']['distance'].item()))
+                curr_dic['inplane_rotation'] = float(str(curr_dic['viewpoint']['theta'].item()))
+                curr_dic['bbox'] = tuple((objects[i]['bbox'][0]).astype('int'))
+                curr_dic['viewport'] = curr_dic['viewpoint']['viewport'][0][0]
+                curr_dic['focal'] = curr_dic['viewpoint']['focal'][0][0]
+                result.append(curr_dic)
             except:
-                curr_dic['azimuth'] = str(curr_dic['viewpoint']['azimuth_coarse'].item())
-                curr_dic['elevation'] = str(curr_dic['viewpoint']['elevation_coarse'].item())
-            curr_dic['azimuth'] = int(float(curr_dic['azimuth']))
-            curr_dic['elevation'] = int(float(curr_dic['elevation']))
-            curr_dic['distance'] = float(str(curr_dic['viewpoint']['distance'].item()))
-            curr_dic['inplane_rotation'] = float(str(curr_dic['viewpoint']['theta'].item()))
-            curr_dic['bbox'] = tuple((objects[i]['bbox'][0]).astype('int'))
-            curr_dic['viewport'] = curr_dic['viewpoint']['viewport'][0][0]
-            curr_dic['focal'] = curr_dic['viewpoint']['focal'][0][0]
-            result.append(curr_dic)
+                print('Failed to parse matrix for image {}'.format(img_file_name))
 
         return result, img_file_name, img_size
