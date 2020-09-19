@@ -25,12 +25,12 @@ checkpoint_dir = os.path.join(args.data_path, 'external', 'generative_inpainting
 def inpaint():
     FLAGS = ng.Config('inpaint.yml')
 
-    image = np.array(request.json['image'])
+    image = np.array(request.json['image'])[:, :, :3]
     mask = np.array(request.json['mask'])
     mask = np.dstack([mask, mask, mask])
 
     model = InpaintCAModel()
-    assert image.shape == mask.shape
+    assert image.shape == mask.shape, 'image shape is {} while mask shape is {}'.format(image.shape, mask.shape)
 
     h, w, _ = image.shape
     grid = 8
