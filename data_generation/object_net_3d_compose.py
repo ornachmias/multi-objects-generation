@@ -40,7 +40,19 @@ class ObjectNet3DCompose(BaseGenerator):
 
         while images_count < count:
             image_id = train_ids[i]
-            renders = self._dataset.get_renders(image_id)
+
+            path1 = os.path.join(self._output_dir, '{}_0_edited.png'.format(image_id))
+            path2 = os.path.join(self._output_dir, '{}_0_random.png'.format(image_id))
+            if os.path.exists(path1) or os.path.exists(path2):
+                i += 1
+                continue
+
+            renders = None
+            try:
+                renders = self._dataset.get_renders(image_id)
+            except Exception as e:
+                traceback.print_exc()
+
             if not renders:
                 i += 1
                 continue
@@ -72,6 +84,10 @@ class ObjectNet3DCompose(BaseGenerator):
                         self._generate_comparison(correct_image, random_image, temp_id + '_compare', temp_id)
 
                     images_count += 1
+
+                    if images_count % 5 == 0:
+                        print(images_count)
+
                 except Exception as e:
                     traceback.print_exc()
 
@@ -83,7 +99,7 @@ class ObjectNet3DCompose(BaseGenerator):
 
         if self._inpaint_cut:
             mask = np.zeros((img.size[0], img.size[1]))
-            mask[bbox[0]:bbox[2], bbox[1]:bbox[3]] = 1
+            mask[bbox[0]:bbox[2], bbox[1]:bbox[3]] = 255
             api_result = self._inpaint_api.inpaint(np.array(img), np.array(mask).T)
             img = Image.fromarray(api_result)
 
