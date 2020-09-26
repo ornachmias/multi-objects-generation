@@ -8,6 +8,7 @@ from data_generation.segmentation_replace import SegmentationReplace
 from data_generation.test_data_generator import TestDataGenerator
 from datasets.mscoco import Mscoco
 from datasets.object_net_3d import ObjectNet3D
+from datasets.test_dataset import TestDataset
 from input_handler import InputHandler
 
 parser = argparse.ArgumentParser(description='Data Generation Tool')
@@ -34,7 +35,7 @@ if user_dataset == InputHandler.Dataset.mscoco:
 elif user_dataset == InputHandler.Dataset.object_net_3d:
     dataset = ObjectNet3D(user_data_path)
 elif user_dataset == InputHandler.Dataset.test:
-    dataset = ObjectNet3D(user_data_path)
+    dataset = TestDataset(user_data_path)
 
 dataset.initialize()
 
