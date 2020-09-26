@@ -41,6 +41,7 @@ class InputHandler:
         unknown = 0
         mscoco = 1
         object_net_3d = 2
+        test = 3
 
         @staticmethod
         def parse(i):
@@ -49,6 +50,8 @@ class InputHandler:
                 return InputHandler.Dataset.mscoco
             if i == 'object_net_3d':
                 return InputHandler.Dataset.object_net_3d
+            if i == 'test':
+                return InputHandler.Dataset.test
             else:
                 argparse.ArgumentTypeError("{} is an invalid dataset.".format(i))
 

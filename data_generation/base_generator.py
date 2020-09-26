@@ -1,5 +1,6 @@
 import csv
 import os
+import random
 from abc import ABC, abstractmethod
 
 
@@ -8,6 +9,7 @@ class BaseGenerator(ABC):
         self._dataset = dataset
         self._metadata = None
         self._compare_metadata = None
+        self._output_dir = None
 
     @abstractmethod
     def generate(self, count):
@@ -32,3 +34,31 @@ class BaseGenerator(ABC):
         with open(self._compare_metadata, 'a', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([image_id_1, image_id_2, path, correct_image_index])
+
+    def _split_data(self, train=0.7, eval=0.25, test=0.05):
+        assert train + eval + test == 1.0, 'Splits does not sum to 1'
+        with open(self._metadata, 'r') as metadata_file:
+            content = metadata_file.readlines()
+            headers = content[0]
+            content = content[1:]
+            random.shuffle(content)
+            total_size = len(content)
+            index = 0
+            curr_path = os.path.join(self._output_dir, 'metadata_train.csv')
+            with open(curr_path, 'w') as file:
+                size = int(total_size * train)
+                file.write(headers)
+                file.writelines(content[:size])
+                index += size
+
+            curr_path = os.path.join(self._output_dir, 'metadata_eval.csv')
+            with open(curr_path, 'w') as file:
+                size = int(total_size * eval)
+                file.write(headers)
+                file.writelines(content[index:index+size])
+                index += size
+
+            curr_path = os.path.join(self._output_dir, 'metadata_test.csv')
+            with open(curr_path, 'w') as file:
+                file.write(headers)
+                file.writelines(content[index:])

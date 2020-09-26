@@ -1,7 +1,6 @@
 import math
 import os
 import random
-import csv
 
 import numpy as np
 from PIL import Image
@@ -80,33 +79,7 @@ class BoundingBoxReplace(BaseGenerator):
 
         self._split_data()
 
-    def _split_data(self, train=0.7, eval=0.25, test=0.05):
-        assert train + eval + test == 1.0, 'Splits does not sum to 1'
-        with open(self._metadata, 'r') as metadata_file:
-            content = metadata_file.readlines()
-            headers = content[0]
-            content = content[1:]
-            random.shuffle(content)
-            total_size = len(content)
-            index = 0
-            curr_path = os.path.join(self._output_dir, 'metadata_train.csv')
-            with open(curr_path, 'w') as file:
-                size = int(total_size * train)
-                file.write(headers)
-                file.writelines(content[:size])
-                index += size
 
-            curr_path = os.path.join(self._output_dir, 'metadata_eval.csv')
-            with open(curr_path, 'w') as file:
-                size = int(total_size * eval)
-                file.write(headers)
-                file.writelines(content[index:index+size])
-                index += size
-
-            curr_path = os.path.join(self._output_dir, 'metadata_test.csv')
-            with open(curr_path, 'w') as file:
-                file.write(headers)
-                file.writelines(content[index:])
 
     def _generate_images(self, category_dir, category_id, image_id_1, image_id_2):
         image_1, _, bboxes_1 = self._dataset.get_image(image_id_1, [category_id])
