@@ -61,6 +61,7 @@ class InputHandler:
         bbox_replace = 2
         seg_replace = 3
         compose_3d = 4
+        test = 5
 
         @staticmethod
         def parse(i):
@@ -73,6 +74,8 @@ class InputHandler:
                 return InputHandler.GenerationType.seg_replace
             elif i == 'compose3d':
                 return InputHandler.GenerationType.compose_3d
+            elif i == 'test':
+                return InputHandler.GenerationType.test
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
 
