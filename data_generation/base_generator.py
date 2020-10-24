@@ -3,6 +3,8 @@ import os
 import random
 from abc import ABC, abstractmethod
 
+from utils.images_utils import ImagesUtils
+
 
 class BaseGenerator(ABC):
     def __init__(self, dataset):
@@ -10,10 +12,23 @@ class BaseGenerator(ABC):
         self._metadata = None
         self._compare_metadata = None
         self._output_dir = None
+        self._compare_dir = None
 
     @abstractmethod
     def generate(self, count):
         pass
+
+    def _generate_comparison(self, correct_image, random_image, file_name, image_id):
+        correct_image_index = random.randint(0, 1)
+        if correct_image_index == 0:
+            images = [correct_image, random_image]
+        else:
+            images = [random_image, correct_image]
+
+        couple = ImagesUtils.concat_images(images)
+        path = ImagesUtils.save_image(couple, self._compare_dir, file_name)
+        if path is not None:
+            self._log_comparison(image_id, image_id, path, correct_image_index)
 
     def _log(self, image_id, path, is_correct=1):
         if not os.path.exists(self._metadata):

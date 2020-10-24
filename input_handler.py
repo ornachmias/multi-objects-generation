@@ -42,6 +42,7 @@ class InputHandler:
         mscoco = 1
         object_net_3d = 2
         test = 3
+        front_future = 4
 
         @staticmethod
         def parse(i):
@@ -52,6 +53,8 @@ class InputHandler:
                 return InputHandler.Dataset.object_net_3d
             if i == 'test':
                 return InputHandler.Dataset.test
+            if i == 'front_future':
+                return InputHandler.Dataset.front_future
             else:
                 argparse.ArgumentTypeError("{} is an invalid dataset.".format(i))
 
@@ -62,6 +65,7 @@ class InputHandler:
         seg_replace = 3
         compose_3d = 4
         test = 5
+        front_future_render = 6
 
         @staticmethod
         def parse(i):
@@ -76,6 +80,8 @@ class InputHandler:
                 return InputHandler.GenerationType.compose_3d
             elif i == 'test':
                 return InputHandler.GenerationType.test
+            elif i == 'front_future_render':
+                return InputHandler.GenerationType.front_future_render
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
 

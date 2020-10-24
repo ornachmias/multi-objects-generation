@@ -105,18 +105,6 @@ class ObjectNet3DCompose(BaseGenerator):
 
         return img
 
-    def _generate_comparison(self, correct_image, random_image, file_name, image_id):
-        correct_image_index = random.randint(0, 1)
-        if correct_image_index == 0:
-            images = [correct_image, random_image]
-        else:
-            images = [random_image, correct_image]
-
-        couple = ImagesUtils.concat_images(images)
-        path = ImagesUtils.save_image(couple, self._compare_dir, file_name)
-        if path is not None:
-            self._log_comparison(image_id, image_id, path, correct_image_index)
-
     def construct_image(self, background_image, object_image, x1, y1, x2, y2):
         resized = object_image.resize((x2 - x1, y2 - y1))
         background_image.paste(resized, (x1, y1, x2, y2), resized)
