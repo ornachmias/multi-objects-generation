@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from data_generation.bounding_box_replace import BoundingBoxReplace
 from data_generation.front_future_3d_render import FrontFuture3DRender
@@ -14,6 +15,8 @@ from datasets.test_dataset import TestDataset
 from input_handler import InputHandler
 
 import numpy as np
+
+os.environ['LANG'] = 'en_US'
 
 parser = argparse.ArgumentParser(description='Data Generation Tool')
 parser.add_argument('-d', '--dataset',
