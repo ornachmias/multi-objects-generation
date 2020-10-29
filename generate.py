@@ -16,7 +16,6 @@ from input_handler import InputHandler
 
 import numpy as np
 
-os.environ['LANG'] = 'en_US'
 
 parser = argparse.ArgumentParser(description='Data Generation Tool')
 parser.add_argument('-d', '--dataset',
@@ -71,6 +70,6 @@ elif user_generation_type == InputHandler.GenerationType.test:
 elif user_generation_type == InputHandler.GenerationType.front_future_render:
     mat = np.eye(4)
     mat[1, 3] = 1
-    generator = FrontFuture3DRender(dataset, 'bed', mat, compare_random=user_generate_comparison)
+    generator = FrontFuture3DRender(dataset, ['chair'], mat, compare_random=user_generate_comparison)
 
 generator.generate(user_count)

@@ -8,7 +8,7 @@ from utils.images_utils import ImagesUtils
 
 
 class FrontFuture3DRender(BaseGenerator):
-    def __init__(self, dataset, transform_category, transform_matrix, compare_random=False):
+    def __init__(self, dataset, transform_categories, transform_matrix, compare_random=False):
         super().__init__(dataset)
         assert isinstance(dataset, FrontFuture3D), "Generator support only " + FrontFuture3D.__name__ + " dataset"
 
@@ -16,7 +16,7 @@ class FrontFuture3DRender(BaseGenerator):
         os.makedirs(self._output_dir, exist_ok=True)
         print('Setting {} output directory as {}'.format(self.__class__.__name__, self._output_dir))
 
-        self._transform_category = transform_category
+        self._transform_categories = transform_categories
         self._transform_matrix = transform_matrix
         self._metadata = os.path.join(self._output_dir, 'metadata.csv')
         self._compare_random = compare_random
@@ -31,7 +31,6 @@ class FrontFuture3DRender(BaseGenerator):
         images_count = 0
         i = 0
 
-        generated_image_index = 0
         while images_count < count:
             scene_id = scene_ids[i]
             path1 = os.path.join(self._output_dir, '{}_0_edited.png'.format(scene_id))
@@ -44,7 +43,7 @@ class FrontFuture3DRender(BaseGenerator):
             incorrect_renders = None
             try:
                 correct_renders, incorrect_renders = \
-                    self._dataset.render_scene(scene_id, self._transform_category, self._transform_matrix)
+                    self._dataset.compose_layout(scene_id, self._transform_categories, self._transform_matrix)
             except Exception as e:
                 traceback.print_exc()
 
@@ -52,9 +51,11 @@ class FrontFuture3DRender(BaseGenerator):
                 i += 1
                 continue
 
+            generated_image_index = 0
             for correct_render, incorrect_render in zip(correct_renders, incorrect_renders):
                 try:
                     self.generate_renders(scene_id, generated_image_index, correct_render, incorrect_render)
+                    generated_image_index += 1
                     images_count += 1
 
                     if images_count % 5 == 0:
