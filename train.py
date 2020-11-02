@@ -15,17 +15,19 @@ parser.add_argument('-l', '--logs_dir', default='./data/logs')
 parser.add_argument('-c', '--checkpoints_dir', default='./data/checkpoints')
 parser.add_argument('-m', '--model_name', default='inception_v3')
 parser.add_argument('-g', '--gpus', default='0')
+parser.add_argument('-a', '--train_all', default='false')
 
 args = parser.parse_args()
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus
 
 user_model = InputHandler.Model.parse(args.model_name)
+user_train_all = InputHandler.str2bool(args.train_all)
 
 model = None
 
 if user_model == InputHandler.Model.inception_v3:
     model = InceptionV3Classifier(train_metadata_path=args.train_metadata, eval_metadata_path=args.eval_metadata,
-                                  image_size=args.image_size, batch_size=args.batch_size)
+                                  image_size=args.image_size, batch_size=args.batch_size, train_all=user_train_all)
 
 model.init()
 

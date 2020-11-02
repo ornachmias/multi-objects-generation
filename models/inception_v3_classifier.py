@@ -7,7 +7,7 @@ import pandas as pd
 
 
 class InceptionV3Classifier:
-    def __init__(self, train_metadata_path, eval_metadata_path, image_size, learning_rate=0.0001, dropout_rate=0.2, loss='binary_crossentropy', batch_size=20):
+    def __init__(self, train_metadata_path, eval_metadata_path, image_size, learning_rate=0.0001, dropout_rate=0.2, loss='binary_crossentropy', batch_size=20, train_all=False):
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
         self.image_size = image_size
@@ -17,6 +17,7 @@ class InceptionV3Classifier:
         self.name = 'inception_v3_classifier'
         self.train_metadata_path = train_metadata_path
         self.eval_metadata_path = eval_metadata_path
+        self.train_all = train_all
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
@@ -49,8 +50,10 @@ class InceptionV3Classifier:
     def init(self):
         pre_trained_model = InceptionV3(input_shape=(self.image_size, self.image_size, 3),
                                         include_top=False, weights='imagenet')
-        for layer in pre_trained_model.layers:
-            layer.trainable = False
+
+        if not self.train_all:
+            for layer in pre_trained_model.layers:
+                layer.trainable = False
 
         x = layers.Flatten()(pre_trained_model.output)
         x = layers.Dense(1024, activation='relu')(x)
