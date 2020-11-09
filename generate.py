@@ -1,16 +1,17 @@
 import argparse
-import os
 
 from data_generation.bounding_box_replace import BoundingBoxReplace
 from data_generation.front_future_3d_render import FrontFuture3DRender
 from data_generation.object_net_3d_compose import ObjectNet3DCompose
 from data_generation.object_outline import ObjectOutline
+from data_generation.scenes_3d_render import Scenes3DRender
 
 from data_generation.segmentation_replace import SegmentationReplace
 from data_generation.test_data_generator import TestDataGenerator
 from datasets.front_future_3d import FrontFuture3D
 from datasets.mscoco import Mscoco
 from datasets.object_net_3d import ObjectNet3D
+from datasets.scenes_3d import Scenes3D
 from datasets.test_dataset import TestDataset
 from input_handler import InputHandler
 
@@ -19,11 +20,12 @@ import numpy as np
 
 parser = argparse.ArgumentParser(description='Data Generation Tool')
 parser.add_argument('-d', '--dataset',
-                    choices=['mscoco', 'object_net_3d', 'test', 'front_future'],
-                    default='front_future')
+                    choices=['mscoco', 'object_net_3d', 'test', 'front_future', 'scenes_3d'],
+                    default='scenes_3d')
 parser.add_argument('-t', '--generation_type',
-                    choices=['outlines', 'bboxreplace', 'segreplace', 'compose3d', 'test', 'front_future_render'],
-                    default='front_future_render')
+                    choices=['outlines', 'bboxreplace', 'segreplace', 'compose3d', 'test', 'front_future_render',
+                             'scenes_3d_render'],
+                    default='scenes_3d_render')
 parser.add_argument('-p', '--data_path', default='./data')
 parser.add_argument('-c', '--count', default=5)
 parser.add_argument('-m', '--generate_compare', default='true')
@@ -48,6 +50,8 @@ elif user_dataset == InputHandler.Dataset.test:
     dataset = TestDataset(user_data_path)
 elif user_dataset == InputHandler.Dataset.front_future:
     dataset = FrontFuture3D(user_data_path)
+elif user_dataset == InputHandler.Dataset.scenes_3d:
+    dataset = Scenes3D(user_data_path)
 
 dataset.initialize()
 
@@ -71,5 +75,9 @@ elif user_generation_type == InputHandler.GenerationType.front_future_render:
     mat = np.eye(4)
     mat[1, 3] = 1
     generator = FrontFuture3DRender(dataset, ['chair'], mat, compare_random=user_generate_comparison)
+elif user_generation_type == InputHandler.GenerationType.scenes_3d_render:
+    mat = np.eye(4)
+    mat[2, 3] = 50
+    generator = Scenes3DRender(dataset, ['chair'], mat, compare_random=user_generate_comparison)
 
 generator.generate(user_count)

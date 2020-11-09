@@ -43,6 +43,7 @@ class InputHandler:
         object_net_3d = 2
         test = 3
         front_future = 4
+        scenes_3d = 5
 
         @staticmethod
         def parse(i):
@@ -55,6 +56,8 @@ class InputHandler:
                 return InputHandler.Dataset.test
             if i == 'front_future':
                 return InputHandler.Dataset.front_future
+            if i == 'scenes_3d':
+                return InputHandler.Dataset.scenes_3d
             else:
                 argparse.ArgumentTypeError("{} is an invalid dataset.".format(i))
 
@@ -66,6 +69,7 @@ class InputHandler:
         compose_3d = 4
         test = 5
         front_future_render = 6
+        scenes_3d_render = 7
 
         @staticmethod
         def parse(i):
@@ -82,6 +86,8 @@ class InputHandler:
                 return InputHandler.GenerationType.test
             elif i == 'front_future_render':
                 return InputHandler.GenerationType.front_future_render
+            elif i == 'scenes_3d_render':
+                return InputHandler.GenerationType.scenes_3d_render
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
 
