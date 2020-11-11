@@ -6,7 +6,7 @@ from tensorflow.keras import Model
 import pandas as pd
 
 
-class InceptionV3Classifier:
+class InceptionV3BinaryClassifier:
     def __init__(self, train_metadata_path, eval_metadata_path, image_size, learning_rate=0.0001, dropout_rate=0.2, loss='binary_crossentropy', batch_size=20, train_all=False):
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
