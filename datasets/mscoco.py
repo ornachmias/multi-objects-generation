@@ -61,6 +61,9 @@ class Mscoco:
         categories = self._mscoco_api.loadCats(self._mscoco_api.getCatIds())
         return [(c['id'], c['name']) for c in categories]
 
+    def count_categories(self):
+        print(len(self.get_categories()))
+
     def get_random_image_id(self):
         img_ids = self._mscoco_api.getImgIds()
         return img_ids[np.random.randint(0, len(img_ids))]

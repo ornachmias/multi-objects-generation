@@ -57,12 +57,24 @@ class FrontFuture3D:
 
         return list(model_ids.keys())
 
-    def render_model(self, model_path):
-        category = None
+    def count_categories(self):
+        categories = {}
+        model_paths = self.get_model_paths()
+        for model_path in model_paths:
+            categories[self.get_obj_category(model_path)] = 1
+
+        return len(categories)
+
+    def get_obj_category(self, model_path):
         with open(model_path) as f:
             first_line = f.readline()
             if first_line.startswith('# category='):
                 category = first_line.replace('# category=', '').strip()
+
+            return category
+
+    def render_model(self, model_path):
+        category = self.get_obj_category(model_path)
 
         result = []
         for x in range(0, 360, 120):

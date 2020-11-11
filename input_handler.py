@@ -115,12 +115,15 @@ class InputHandler:
     class ExploreOperation(Enum):
         unknown = 0
         show_image = 1
+        count_categories = 2
 
         @staticmethod
         def parse(i):
             i = i.lower()
             if i == 'show':
                 return InputHandler.ExploreOperation.show_image
+            if i == 'count_categories':
+                return InputHandler.ExploreOperation.count_categories
             else:
                 argparse.ArgumentTypeError("{} is an invalid explore operation.".format(i))
 
