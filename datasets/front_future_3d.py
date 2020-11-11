@@ -39,6 +39,70 @@ class FrontFuture3D:
     def get_scene_ids(self):
         return os.listdir(self.obj_custom_dir)
 
+    def get_model_paths(self):
+        model_ids = {}
+        scene_paths = [os.path.join(self.obj_custom_dir, d) for d in os.listdir(self.obj_custom_dir)
+                       if os.path.isdir(os.path.join(self.obj_custom_dir, d))]
+
+        for scene_path in scene_paths:
+            room_dirs = [os.path.join(scene_path, d) for d in os.listdir(scene_path)
+                         if os.path.isdir(os.path.join(scene_path, d))]
+
+            for room_dir in room_dirs:
+                model_paths = [os.path.join(room_dir, f) for f in os.listdir(room_dir)
+                               if f != 'mesh.obj' and f.endswith('.obj')]
+
+                for model_path in model_paths:
+                    model_ids[model_path] = 1
+
+        return list(model_ids.keys())
+
+    def render_model(self, model_path):
+        category = None
+        with open(model_path) as f:
+            first_line = f.readline()
+            if first_line.startswith('# category='):
+                category = first_line.replace('# category=', '').strip()
+
+        result = []
+        for x in range(0, 360, 120):
+            for y in range(0, 360, 120):
+                for z in range(0, 360, 120):
+                    scene = Scene()
+                    obj = trimesh.load(model_path)
+                    obj.apply_transform((self.x_rotation(np.deg2rad(x))))
+                    obj.apply_transform((self.y_rotation(np.deg2rad(y))))
+                    obj.apply_transform((self.z_rotation(np.deg2rad(z))))
+                    scene.add_geometry(obj)
+                    result.append(np.array(Image.open(trimesh.util.wrap_as_stream(
+                        scene.save_image(background=[255, 255, 255, 0], flags={'cull': True})))))
+
+        return result, category
+
+    def z_rotation(self, angle):
+        rot = np.eye(4)
+        rot[0, 0] = np.cos(angle)
+        rot[1, 0] = np.sin(angle)
+        rot[0, 1] = -np.sin(angle)
+        rot[1, 1] = np.cos(angle)
+        return rot
+
+    def y_rotation(self, angle):
+        rot = np.eye(4)
+        rot[0, 0] = np.cos(angle)
+        rot[0, 2] = np.sin(angle)
+        rot[2, 0] = -np.sin(angle)
+        rot[2, 2] = np.cos(angle)
+        return rot
+
+    def x_rotation(self, angle):
+        rot = np.eye(4)
+        rot[1, 1] = np.cos(angle)
+        rot[1, 2] = -np.sin(angle)
+        rot[2, 1] = np.sin(angle)
+        rot[2, 2] = np.cos(angle)
+        return rot
+
     @staticmethod
     def _download_and_extract(url, download_target_path, extracted_dir, force_init):
         if not os.path.exists(download_target_path) or force_init:
@@ -47,22 +111,6 @@ class FrontFuture3D:
         if not os.path.exists(extracted_dir) or force_init:
             FilesUtils.validate_path(download_target_path)
             FilesUtils.extract(download_target_path)
-
-    def render_scene(self, scene_id, transform_category, transform_matrix):
-        scene_dir = os.path.join(self.obj_custom_dir, scene_id)
-        rooms_ids = os.listdir(scene_dir)
-        correct_imgs = []
-        incorrect_imgs = []
-        for rooms_id in rooms_ids:
-            room_dir = os.path.join(self.obj_custom_dir, scene_id, rooms_id)
-            room_files = [os.path.join(room_dir, f) for f in os.listdir(room_dir) if f.endswith('.obj')]
-            if len(room_files) > 1:
-                print('Rendering {}'.format(room_dir))
-                correct_img, incorrect_img = self.render_room(scene_id, rooms_id, transform_category, transform_matrix)
-                correct_imgs.append(np.array(correct_img))
-                incorrect_imgs.append(np.array(incorrect_img))
-
-        return correct_imgs, incorrect_imgs
 
     def compose_layout(self, layout_id, transform_categories, transform_matrix):
         correct_imgs = []
@@ -126,38 +174,6 @@ class FrontFuture3D:
 
         return np.array(correct_img), np.array(incorrect_image)
 
-    def render_room(self, scene_id, room_id, transform_category, transform_matrix):
-        room_dir = os.path.join(self.obj_custom_dir, scene_id, room_id)
-        room_files = [os.path.join(room_dir, f) for f in os.listdir(room_dir) if f.endswith('.obj')]
-
-        scene_trimesh = Scene()
-        categories = {}
-        for obj_file in room_files:
-            with open(obj_file) as f:
-                first_line = f.readline()
-                if first_line.startswith('# category='):
-                    category = first_line.replace('# category=', '')
-                    k = os.path.basename(obj_file)
-                    categories[k] = category.lower()
-
-            obj_trimesh = trimesh.load(obj_file)
-            scene_trimesh.add_geometry(obj_trimesh, node_name=obj_file)
-
-        scene_trimesh.show()
-        correct_img = Image.open(trimesh.util.wrap_as_stream(
-            scene_trimesh.save_image(resolution=(1000, 1000), background=[255, 255, 255, 0], flags={'cull': True})))
-
-        for geo_identifier in scene_trimesh.geometry:
-            if geo_identifier != 'mesh.obj':
-                if transform_category in categories[geo_identifier]:
-                    scene_trimesh.geometry[geo_identifier].apply_transform(transform_matrix)
-                    break
-
-        incorrect_image = Image.open(trimesh.util.wrap_as_stream(
-            scene_trimesh.save_image(resolution=(1000, 1000), background=[255, 255, 255, 0], flags={'cull': True})))
-
-        return correct_img, incorrect_image
-
     def look_at(self, center, target):
         up = np.array([0.0, 1.0, 0.0])
         f = (target - center)
@@ -176,4 +192,3 @@ class FrontFuture3D:
         t = np.matmul(r, center)
         m[:3, 3] = t.reshape((3,))
         return m
-

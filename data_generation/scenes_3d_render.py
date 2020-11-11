@@ -3,7 +3,6 @@ import random
 import traceback
 
 from data_generation.base_generator import BaseGenerator
-from datasets.front_future_3d import FrontFuture3D
 from datasets.scenes_3d import Scenes3D
 from utils.images_utils import ImagesUtils
 

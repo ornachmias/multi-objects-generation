@@ -70,6 +70,7 @@ class InputHandler:
         test = 5
         front_future_render = 6
         scenes_3d_render = 7
+        front_model_render = 8
 
         @staticmethod
         def parse(i):
@@ -88,6 +89,8 @@ class InputHandler:
                 return InputHandler.GenerationType.front_future_render
             elif i == 'scenes_3d_render':
                 return InputHandler.GenerationType.scenes_3d_render
+            elif i == 'front_model_render':
+                return InputHandler.GenerationType.front_model_render
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
 

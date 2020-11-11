@@ -2,6 +2,7 @@ import argparse
 
 from data_generation.bounding_box_replace import BoundingBoxReplace
 from data_generation.front_future_3d_render import FrontFuture3DRender
+from data_generation.front_model_render import FrontModelRender
 from data_generation.object_net_3d_compose import ObjectNet3DCompose
 from data_generation.object_outline import ObjectOutline
 from data_generation.scenes_3d_render import Scenes3DRender
@@ -21,13 +22,13 @@ import numpy as np
 parser = argparse.ArgumentParser(description='Data Generation Tool')
 parser.add_argument('-d', '--dataset',
                     choices=['mscoco', 'object_net_3d', 'test', 'front_future', 'scenes_3d'],
-                    default='scenes_3d')
+                    default='front_future')
 parser.add_argument('-t', '--generation_type',
                     choices=['outlines', 'bboxreplace', 'segreplace', 'compose3d', 'test', 'front_future_render',
-                             'scenes_3d_render'],
-                    default='scenes_3d_render')
+                             'scenes_3d_render', 'front_model_render'],
+                    default='front_model_render')
 parser.add_argument('-p', '--data_path', default='./data')
-parser.add_argument('-c', '--count', default=5)
+parser.add_argument('-c', '--count', default=10000)
 parser.add_argument('-m', '--generate_compare', default='true')
 parser.add_argument('-b', '--back_object', choices=['none', 'black', 'inpaint'], default='black')
 
@@ -79,5 +80,7 @@ elif user_generation_type == InputHandler.GenerationType.scenes_3d_render:
     mat = np.eye(4)
     mat[2, 3] = 50
     generator = Scenes3DRender(dataset, ['chair'], mat, compare_random=user_generate_comparison)
+elif user_generation_type == InputHandler.GenerationType.front_model_render:
+    generator = FrontModelRender(dataset)
 
 generator.generate(user_count)
