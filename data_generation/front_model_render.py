@@ -26,7 +26,8 @@ class FrontModelRender(BaseGenerator):
 
         while i < len(models_paths):
             model_path = models_paths[i]
-            path = os.path.join(self._output_dir, '{}_0.png'.format(i))
+            model_id = os.path.basename(model_path).split(".")[0]
+            path = os.path.join(self._output_dir, '{}_0.png'.format(model_id))
             if os.path.exists(path):
                 i += 1
                 continue
@@ -45,7 +46,7 @@ class FrontModelRender(BaseGenerator):
             generated_image_index = 0
             for render in renders:
                 try:
-                    self.save_render(render, category, i, generated_image_index)
+                    self.save_render(render, category, model_id, generated_image_index)
                     generated_image_index += 1
                     images_count += 1
 
@@ -57,13 +58,13 @@ class FrontModelRender(BaseGenerator):
 
             i += 1
 
-    def save_render(self, render, category, id, generated_image_index):
+    def save_render(self, render, category, model_id, generated_image_index):
         path = None
         try:
             path = ImagesUtils.save_image(render, self._output_dir,
-                                          '{}_{}'.format(id, str(generated_image_index)))
+                                          '{}_{}'.format(model_id, str(generated_image_index)))
         except Exception as e:
             print('Error saving file, skipping')
 
         if path is not None:
-            self._log(path, path, is_correct=category)
+            self._log(model_id, path, is_correct=category)
