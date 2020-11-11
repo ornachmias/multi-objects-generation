@@ -17,7 +17,7 @@ parser.add_argument('-c', '--checkpoints_dir', default='./data/checkpoints')
 parser.add_argument('-m', '--model_name', default='inception_v3')
 parser.add_argument('-g', '--gpus', default='0')
 parser.add_argument('-a', '--train_all', default='false')
-parser.add_argument('-c', '--classes', default=None, type=int)
+parser.add_argument('-n', '--classes', default=None, type=int)
 
 args = parser.parse_args()
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus
