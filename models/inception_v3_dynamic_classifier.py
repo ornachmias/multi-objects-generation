@@ -8,7 +8,7 @@ import pandas as pd
 
 class InceptionV3DynamicClassifier:
     def __init__(self, number_of_classes, train_metadata_path, eval_metadata_path, image_size, learning_rate=0.0001,
-                 dropout_rate=0.2, loss='categorical_crossentropy', batch_size=20, train_all=False):
+                 dropout_rate=0.2, loss='sparse_categorical_crossentropy', batch_size=20, train_all=False):
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
         self.image_size = image_size
