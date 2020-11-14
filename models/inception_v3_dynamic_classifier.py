@@ -44,7 +44,7 @@ class InceptionV3DynamicClassifier:
         validation_generator = eval_datagen.flow_from_dataframe(df_eval,
                                                                 x_col='path',
                                                                 y_col='is_correct',
-                                                                batch_size=1,
+                                                                batch_size=self.batch_size,
                                                                 class_mode='categorical',
                                                                 target_size=(self.image_size, self.image_size))
         return train_generator, validation_generator
