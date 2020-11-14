@@ -44,7 +44,7 @@ class InceptionV3DynamicClassifier:
         validation_generator = eval_datagen.flow_from_dataframe(df_eval,
                                                                 x_col='path',
                                                                 y_col='is_correct',
-                                                                batch_size=self.batch_size,
+                                                                batch_size=1,
                                                                 class_mode='categorical',
                                                                 target_size=(self.image_size, self.image_size))
         return train_generator, validation_generator
@@ -63,6 +63,7 @@ class InceptionV3DynamicClassifier:
         x = layers.Dense(self.number_of_classes, activation='sigmoid')(x)
         self.model = Model(pre_trained_model.input, x)
         self.model.compile(optimizer=RMSprop(lr=self.learning_rate), loss=self.loss, metrics=['acc'])
+        print(self.model.summary())
 
     def train(self, callbacks, epochs=100):
         train_generator, eval_generator = self.get_data_generators()
