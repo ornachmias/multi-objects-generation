@@ -64,6 +64,7 @@ class InceptionV3DynamicClassifier:
         x = layers.Dense(self.number_of_classes, activation='sigmoid')(x)
         self.model = Model(pre_trained_model.input, x)
         self.model.compile(optimizer=RMSprop(lr=self.learning_rate), loss=self.loss, metrics=['acc'])
+        self.model.load_weights()
         print(self.model.summary())
 
     def train(self, callbacks, epochs=100):

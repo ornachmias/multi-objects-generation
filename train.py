@@ -45,5 +45,5 @@ if user_model == InputHandler.Model.inception_v3:
                                              train_all=user_train_all)
 
 model.init()
-callbacks = CallbacksHandler(args.checkpoints_dir, args.logs_dir).get_callbacks(model.name)
+callbacks = CallbacksHandler(args.checkpoints_dir, args.logs_dir, model.name)
 model.train(callbacks=callbacks, epochs=args.epochs)

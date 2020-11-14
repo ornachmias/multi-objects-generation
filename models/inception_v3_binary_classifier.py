@@ -63,7 +63,9 @@ class InceptionV3BinaryClassifier:
         self.model.compile(optimizer=RMSprop(lr=self.learning_rate), loss=self.loss, metrics=['acc'])
 
     def train(self, callbacks, epochs=100):
+        self.model.load_weights(callbacks.checkpoint_path, by_name=True)
         train_generator, eval_generator = self.get_data_generators()
         history = self.model.fit(x=train_generator, validation_data=eval_generator,
-                                 batch_size=self.batch_size, epochs=epochs, verbose=1, callbacks=callbacks)
+                                 batch_size=self.batch_size, epochs=epochs, verbose=1,
+                                 callbacks=callbacks.get_callbacks())
         return history
