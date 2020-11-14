@@ -68,5 +68,6 @@ class InceptionV3DynamicClassifier:
     def train(self, callbacks, epochs=100):
         train_generator, eval_generator = self.get_data_generators()
         history = self.model.fit(x=train_generator, validation_data=eval_generator,
-                                 batch_size=self.batch_size, epochs=epochs, verbose=1, callbacks=callbacks)
+                                 batch_size=self.batch_size, epochs=epochs, verbose=1, callbacks=callbacks,
+                                 steps_per_epoch=int(len(train_generator) / self.batch_size))
         return history
