@@ -46,7 +46,8 @@ class InceptionV3DynamicClassifier:
                                                                 y_col='is_correct',
                                                                 batch_size=self.batch_size,
                                                                 class_mode='sparse',
-                                                                target_size=(self.image_size, self.image_size))
+                                                                target_size=(self.image_size, self.image_size),
+                                                                shuffle=False)
         return train_generator, validation_generator
 
     def init(self):
