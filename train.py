@@ -5,6 +5,7 @@ from input_handler import InputHandler
 from models.callbacks.callbacks_handler import CallbacksHandler
 from models.inception_v3_binary_classifier import InceptionV3BinaryClassifier
 from models.inception_v3_dynamic_classifier import InceptionV3DynamicClassifier
+import tensorflow as tf
 
 parser = argparse.ArgumentParser(description='Data Classification Tool')
 parser.add_argument('-s', '--image_size', type=int, default=256)
@@ -21,6 +22,8 @@ parser.add_argument('-n', '--classes', default=None, type=int)
 
 args = parser.parse_args()
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus
+devices = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(devices[0], True)
 
 user_model = InputHandler.Model.parse(args.model_name)
 user_train_all = InputHandler.str2bool(args.train_all)
