@@ -8,7 +8,7 @@ import pandas as pd
 
 class InceptionV3MultiClassification:
     def __init__(self, train_metadata_path, eval_metadata_path, image_size, learning_rate=0.0001,
-                 dropout_rate=0.2, loss='sparse_categorical_crossentropy', batch_size=20, train_all=False):
+                 dropout_rate=0.2, loss='categorical_crossentropy', batch_size=20, train_all=False):
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
         self.image_size = image_size
@@ -23,9 +23,9 @@ class InceptionV3MultiClassification:
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
-        df_train['labels'] = df_train['categories'].apply(self.split_column).astype('str')
+        df_train['labels'] = df_train['categories'].apply(self.split_column)
         df_eval = pd.read_csv(self.eval_metadata_path)
-        df_eval['labels'] = df_eval['categories'].apply(self.split_column).astype('str')
+        df_eval['labels'] = df_eval['categories'].apply(self.split_column)
 
         train_datagen = ImageDataGenerator(rescale=1./255.,
                                            rotation_range=40,
@@ -40,13 +40,13 @@ class InceptionV3MultiClassification:
                                                             x_col='path',
                                                             y_col='labels',
                                                             batch_size=self.batch_size,
-                                                            class_mode='sparse',
+                                                            class_mode='categorical',
                                                             target_size=(self.image_size, self.image_size))
         validation_generator = eval_datagen.flow_from_dataframe(df_eval,
                                                                 x_col='path',
                                                                 y_col='labels',
                                                                 batch_size=self.batch_size,
-                                                                class_mode='sparse',
+                                                                class_mode='categorical',
                                                                 target_size=(self.image_size, self.image_size),
                                                                 shuffle=False)
         return train_generator, validation_generator
@@ -83,7 +83,6 @@ class InceptionV3MultiClassification:
 
     def train(self, callbacks, epochs=100):
         train_generator, eval_generator = self.get_data_generators()
-        self.model.load_weights(callbacks.checkpoint_path, by_name=True)
         history = self.model.fit(x=train_generator, validation_data=eval_generator,
                                  batch_size=self.batch_size, epochs=epochs, verbose=1, callbacks=callbacks,
                                  steps_per_epoch=len(train_generator),
