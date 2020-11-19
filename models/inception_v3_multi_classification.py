@@ -53,13 +53,16 @@ class InceptionV3MultiClassification:
 
     def get_number_of_classes(self):
         df_train = pd.read_csv(self.train_metadata_path)
-        df_train['labels'] = df_train['categories'].astype(str).split(";")
+        df_train['labels'] = df_train['categories'].apply(self.split_column)
         df_eval = pd.read_csv(self.eval_metadata_path)
-        df_eval['labels'] = df_eval['categories'].astype(str).split(";")
+        df_eval['labels'] = df_eval['categories'].apply(self.split_column)
 
         all_categories = ';'.join(df_train['categories']) + ';' + ';'.join(df_eval['categories'])
         all_categories = all_categories.split(';')
         return len(set(all_categories))
+
+    def split_column(self, categories_str):
+        return [int(x) for x in categories_str.split(';')]
 
     def init(self):
         self.number_of_classes = self.get_number_of_classes()
