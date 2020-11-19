@@ -23,9 +23,9 @@ class InceptionV3MultiClassification:
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
-        df_train['labels'] = df_train['categories'].astype(str).split(";")
+        df_train['labels'] = df_train['categories'].apply(self.split_column)
         df_eval = pd.read_csv(self.eval_metadata_path)
-        df_eval['labels'] = df_eval['categories'].astype(str).split(";")
+        df_eval['labels'] = df_eval['categories'].apply(self.split_column)
 
         train_datagen = ImageDataGenerator(rescale=1./255.,
                                            rotation_range=40,
