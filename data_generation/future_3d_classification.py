@@ -13,17 +13,17 @@ class Future3DClassification:
 
     def generate(self, count):
         train_output_path, test_output_path = self.get_output_paths()
-        # with open(self.train_json_path) as f:
-        #     train_data = json.load(f)
-        #     image_file_name = self.get_image_file_names(train_data)
-        #     annotations = self.group_annotations(train_data)
-        #     metadata_path = os.path.join(train_output_path, 'metadata.csv')
-        #     for image_id in annotations:
-        #         image_path = os.path.join(self.future_3d_dir, 'train', 'image', image_file_name[image_id] + '.jpg')
-        #         if os.path.exists(image_path):
-        #             self.log(image_id, image_path, annotations[image_id], metadata_path)
-        #         else:
-        #             print('Cant find image {}'.format(image_path))
+        with open(self.train_json_path) as f:
+            train_data = json.load(f)
+            image_file_name = self.get_image_file_names(train_data)
+            annotations = self.group_annotations(train_data)
+            metadata_path = os.path.join(train_output_path, 'metadata.csv')
+            for image_id in annotations:
+                image_path = os.path.join(self.future_3d_dir, 'train', 'image', image_file_name[image_id] + '.jpg')
+                if os.path.exists(image_path):
+                    self.log(image_id, image_path, annotations[image_id], metadata_path)
+                else:
+                    print('Cant find image {}'.format(image_path))
 
         with open(self.test_json_path) as f:
             test_data = json.load(f)

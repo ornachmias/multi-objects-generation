@@ -3,6 +3,7 @@ import argparse
 from data_generation.bounding_box_replace import BoundingBoxReplace
 from data_generation.front_future_3d_render import FrontFuture3DRender
 from data_generation.front_model_render import FrontModelRender
+from data_generation.future_3d_classification import Future3DClassification
 from data_generation.object_net_3d_compose import ObjectNet3DCompose
 from data_generation.object_outline import ObjectOutline
 from data_generation.scenes_3d_render import Scenes3DRender
@@ -25,7 +26,7 @@ parser.add_argument('-d', '--dataset',
                     default='front_future')
 parser.add_argument('-t', '--generation_type',
                     choices=['outlines', 'bboxreplace', 'segreplace', 'compose3d', 'test', 'front_future_render',
-                             'scenes_3d_render', 'front_model_render'],
+                             'scenes_3d_render', 'front_model_render', 'future_classification'],
                     default='front_model_render')
 parser.add_argument('-p', '--data_path', default='./data')
 parser.add_argument('-c', '--count', default=10000)
@@ -82,5 +83,7 @@ elif user_generation_type == InputHandler.GenerationType.scenes_3d_render:
     generator = Scenes3DRender(dataset, ['chair'], mat, compare_random=user_generate_comparison)
 elif user_generation_type == InputHandler.GenerationType.front_model_render:
     generator = FrontModelRender(dataset)
+elif user_generation_type == InputHandler.GenerationType.future_classification:
+    generator = Future3DClassification(user_data_path)
 
 generator.generate(user_count)

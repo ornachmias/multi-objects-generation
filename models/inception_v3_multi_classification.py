@@ -6,8 +6,8 @@ from tensorflow.keras import Model
 import pandas as pd
 
 
-class InceptionV3DynamicClassifier:
-    def __init__(self, number_of_classes, train_metadata_path, eval_metadata_path, image_size, learning_rate=0.0001,
+class InceptionV3MultiClassification:
+    def __init__(self, train_metadata_path, eval_metadata_path, image_size, learning_rate=0.0001,
                  dropout_rate=0.2, loss='sparse_categorical_crossentropy', batch_size=20, train_all=False):
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
@@ -15,17 +15,22 @@ class InceptionV3DynamicClassifier:
         self.loss = loss
         self.batch_size = batch_size
         self.model = None
-        self.number_of_classes = number_of_classes
-        self.name = 'inception_v3_classifier_{}'.format(number_of_classes)
+        self.name = 'inception_v3_multi_classification'
         self.train_metadata_path = train_metadata_path
         self.eval_metadata_path = eval_metadata_path
         self.train_all = train_all
+        self.number_of_classes = None
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
-        df_train['is_correct'] = df_train['is_correct'].astype(str)
+        df_train['labels'] = df_train['categories'].astype(str).split(";")
         df_eval = pd.read_csv(self.eval_metadata_path)
-        df_eval['is_correct'] = df_eval['is_correct'].astype(str)
+        df_eval['labels'] = df_eval['categories'].astype(str).split(";")
+
+        all_categories = ';'.join(df_train['categories']) + ';' + ';'.join(df_eval['categories'])
+        all_categories = all_categories.split(';')
+        self.number_of_classes = len(set(all_categories))
+
         train_datagen = ImageDataGenerator(rescale=1./255.,
                                            rotation_range=40,
                                            width_shift_range=0.2,
@@ -37,13 +42,13 @@ class InceptionV3DynamicClassifier:
 
         train_generator = train_datagen.flow_from_dataframe(df_train,
                                                             x_col='path',
-                                                            y_col='is_correct',
+                                                            y_col='labels',
                                                             batch_size=self.batch_size,
                                                             class_mode='sparse',
                                                             target_size=(self.image_size, self.image_size))
         validation_generator = eval_datagen.flow_from_dataframe(df_eval,
                                                                 x_col='path',
-                                                                y_col='is_correct',
+                                                                y_col='labels',
                                                                 batch_size=self.batch_size,
                                                                 class_mode='sparse',
                                                                 target_size=(self.image_size, self.image_size),

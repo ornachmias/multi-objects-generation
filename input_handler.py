@@ -71,6 +71,7 @@ class InputHandler:
         front_future_render = 6
         scenes_3d_render = 7
         front_model_render = 8
+        future_classification = 9
 
         @staticmethod
         def parse(i):
@@ -91,6 +92,8 @@ class InputHandler:
                 return InputHandler.GenerationType.scenes_3d_render
             elif i == 'front_model_render':
                 return InputHandler.GenerationType.front_model_render
+            elif i == 'future_classification':
+                return InputHandler.GenerationType.future_classification
             else:
                 argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
 
@@ -130,11 +133,14 @@ class InputHandler:
     class Model(Enum):
         unknown = 0
         inception_v3 = 1
+        inception_v3_multi = 2
 
         @staticmethod
         def parse(i):
             i = i.lower()
             if i == 'inception_v3':
                 return InputHandler.Model.inception_v3
+            elif i == 'inception_v3_multi':
+                return InputHandler.Model.inception_v3_multi
             else:
                 argparse.ArgumentTypeError("{} is an invalid model.".format(i))

@@ -7,6 +7,8 @@ from models.inception_v3_binary_classifier import InceptionV3BinaryClassifier
 from models.inception_v3_dynamic_classifier import InceptionV3DynamicClassifier
 import tensorflow as tf
 
+from models.inception_v3_multi_classification import InceptionV3MultiClassification
+
 parser = argparse.ArgumentParser(description='Data Classification Tool')
 parser.add_argument('-s', '--image_size', type=int, default=256)
 parser.add_argument('-t', '--train_metadata', default='./data/bbox_replace/metadata_train.csv')
@@ -43,6 +45,11 @@ if user_model == InputHandler.Model.inception_v3:
                                              image_size=args.image_size,
                                              batch_size=args.batch_size,
                                              train_all=user_train_all)
+elif user_model == InputHandler.Model.inception_v3_multi:
+    model = InceptionV3MultiClassification(train_metadata_path=args.train_metadata,
+                                           eval_metadata_path=args.eval_metadata,
+                                           image_size=args.image_size, batch_size=args.batch_size,
+                                           train_all=user_train_all)
 
 model.init()
 callbacks = CallbacksHandler(args.checkpoints_dir, args.logs_dir, model.name)
