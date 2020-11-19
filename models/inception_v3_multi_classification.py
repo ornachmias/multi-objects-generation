@@ -62,7 +62,7 @@ class InceptionV3MultiClassification:
         return len(set(all_categories))
 
     def split_column(self, categories_str):
-        return [int(x) for x in categories_str.split(';')]
+        return categories_str.split(';')
 
     def init(self):
         self.number_of_classes = self.get_number_of_classes()
