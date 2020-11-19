@@ -88,6 +88,3 @@ class Future3DClassification:
             categories_string = categories_string.strip(";")
             writer.writerow([image_id, path, categories_string])
 
-
-generator = Future3DClassification('../data')
-generator.generate(10)
