@@ -27,10 +27,6 @@ class InceptionV3MultiClassification:
         df_eval = pd.read_csv(self.eval_metadata_path)
         df_eval['labels'] = df_eval['categories'].astype(str).split(";")
 
-        all_categories = ';'.join(df_train['categories']) + ';' + ';'.join(df_eval['categories'])
-        all_categories = all_categories.split(';')
-        self.number_of_classes = len(set(all_categories))
-
         train_datagen = ImageDataGenerator(rescale=1./255.,
                                            rotation_range=40,
                                            width_shift_range=0.2,
@@ -55,7 +51,18 @@ class InceptionV3MultiClassification:
                                                                 shuffle=False)
         return train_generator, validation_generator
 
+    def get_number_of_classes(self):
+        df_train = pd.read_csv(self.train_metadata_path)
+        df_train['labels'] = df_train['categories'].astype(str).split(";")
+        df_eval = pd.read_csv(self.eval_metadata_path)
+        df_eval['labels'] = df_eval['categories'].astype(str).split(";")
+
+        all_categories = ';'.join(df_train['categories']) + ';' + ';'.join(df_eval['categories'])
+        all_categories = all_categories.split(';')
+        return len(set(all_categories))
+
     def init(self):
+        self.number_of_classes = self.get_number_of_classes()
         pre_trained_model = InceptionV3(input_shape=(self.image_size, self.image_size, 3),
                                         include_top=False, weights='imagenet')
 
