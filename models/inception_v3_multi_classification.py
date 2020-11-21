@@ -1,3 +1,5 @@
+import os
+
 from tensorflow.keras.applications.inception_v3 import InceptionV3
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import RMSprop
@@ -19,13 +21,20 @@ class InceptionV3MultiClassification:
         self.train_metadata_path = train_metadata_path
         self.eval_metadata_path = eval_metadata_path
         self.train_all = train_all
-        self.number_of_classes = None
+        self.train_generator = None
+        self.eval_generator = None
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
         df_train['labels'] = df_train['categories'].apply(self.split_column)
         df_eval = pd.read_csv(self.eval_metadata_path)
         df_eval['labels'] = df_eval['categories'].apply(self.split_column)
+
+        classes = ';'.join(df_train['categories']) + ';' + ';'.join(df_eval['categories'])
+        classes = list(set(classes.split(';')))
+
+        df_train = df_train[df_train.apply(self.check_path_row_exists, axis=1)]
+        df_eval = df_eval[df_eval.apply(self.check_path_row_exists, axis=1)]
 
         train_datagen = ImageDataGenerator(rescale=1./255.,
                                            rotation_range=40,
@@ -41,31 +50,27 @@ class InceptionV3MultiClassification:
                                                             y_col='labels',
                                                             batch_size=self.batch_size,
                                                             class_mode='categorical',
-                                                            target_size=(self.image_size, self.image_size))
+                                                            target_size=(self.image_size, self.image_size),
+                                                            classes=classes)
         validation_generator = eval_datagen.flow_from_dataframe(df_eval,
                                                                 x_col='path',
                                                                 y_col='labels',
                                                                 batch_size=self.batch_size,
                                                                 class_mode='categorical',
                                                                 target_size=(self.image_size, self.image_size),
-                                                                shuffle=False)
-        return train_generator, validation_generator
+                                                                shuffle=False,
+                                                                classes=classes)
+        return train_generator, validation_generator, classes
 
-    def get_number_of_classes(self):
-        df_train = pd.read_csv(self.train_metadata_path)
-        df_train['labels'] = df_train['categories'].apply(self.split_column)
-        df_eval = pd.read_csv(self.eval_metadata_path)
-        df_eval['labels'] = df_eval['categories'].apply(self.split_column)
-
-        all_categories = ';'.join(df_train['categories']) + ';' + ';'.join(df_eval['categories'])
-        all_categories = all_categories.split(';')
-        return len(set(all_categories))
+    def check_path_row_exists(self, row):
+        return os.path.exists(row['path'])
 
     def split_column(self, categories_str):
         return categories_str.split(';')
 
     def init(self):
-        self.number_of_classes = self.get_number_of_classes()
+        self.train_generator, self.eval_generator, classes = self.get_data_generators()
+        number_of_classes = len(classes)
         pre_trained_model = InceptionV3(input_shape=(self.image_size, self.image_size, 3),
                                         include_top=False, weights='imagenet')
 
@@ -76,16 +81,15 @@ class InceptionV3MultiClassification:
         x = layers.Flatten()(pre_trained_model.output)
         x = layers.Dense(1024, activation='relu')(x)
         x = layers.Dropout(self.dropout_rate)(x)
-        x = layers.Dense(self.number_of_classes, activation='sigmoid')(x)
+        x = layers.Dense(number_of_classes, activation='sigmoid')(x)
         self.model = Model(pre_trained_model.input, x)
         self.model.compile(optimizer=RMSprop(lr=self.learning_rate), loss=self.loss, metrics=['acc'])
         print(self.model.summary())
 
     def train(self, callbacks, epochs=100):
-        train_generator, eval_generator = self.get_data_generators()
-        history = self.model.fit(x=train_generator, validation_data=eval_generator,
+        history = self.model.fit(x=self.train_generator, validation_data=self.eval_generator,
                                  batch_size=self.batch_size, epochs=epochs, verbose=1,
                                  callbacks=callbacks.get_callbacks(),
-                                 steps_per_epoch=len(train_generator),
-                                 validation_steps=len(eval_generator))
+                                 steps_per_epoch=len(self.train_generator),
+                                 validation_steps=len(self.eval_generator))
         return history
