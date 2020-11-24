@@ -6,7 +6,7 @@ from models.callbacks.callbacks_handler import CallbacksHandler
 from models.inception_v3_multi_classification import InceptionV3MultiClassification
 
 parser = argparse.ArgumentParser(description='Data Classification Tool')
-parser.add_argument('-p', '--image_path', default='./data/3d_front/3D-FUTURE-scene/test/image/0000022.jpg')
+parser.add_argument('-p', '--image_path', default='./data/scenes_3d/generated/ComputerDesk0_3_edited.png')
 parser.add_argument('-c', '--checkpoints_dir', default='./data/checkpoints')
 parser.add_argument('-m', '--model_name', default='inception_v3_multi')
 parser.add_argument('-g', '--gpus', default='0')
@@ -26,10 +26,10 @@ if not os.path.exists(image_path):
     print('Image path {} was not found'.format(image_path))
 
 if user_model == InputHandler.Model.inception_v3_multi:
-    model = InceptionV3MultiClassification(image_size=args.image_size)
+    model = InceptionV3MultiClassification(image_size=args.image_size, is_eval=True)
 
-callbacks = CallbacksHandler(args.checkpoints_dir, None, model.name)
-model.init()
+callback_handler = CallbacksHandler(args.checkpoints_dir, None, model.name)
+model.init(callback_handler)
 result = model.eval(image_path=image_path)
 print(result)
 

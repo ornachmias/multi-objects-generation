@@ -15,7 +15,7 @@ from utils.images_utils import ImagesUtils
 
 class InceptionV3MultiClassification:
     def __init__(self, image_size, train_metadata_path=None, eval_metadata_path=None, learning_rate=0.0001,
-                 dropout_rate=0.2, loss='categorical_crossentropy', batch_size=20, train_all=False):
+                 dropout_rate=0.2, loss='categorical_crossentropy', batch_size=20, train_all=False, is_eval=False):
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
         self.image_size = image_size
@@ -29,6 +29,7 @@ class InceptionV3MultiClassification:
         self.train_generator = None
         self.eval_generator = None
         self.callback_handler = None
+        self.is_eval = is_eval
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
@@ -79,9 +80,11 @@ class InceptionV3MultiClassification:
         pre_trained_model = InceptionV3(input_shape=(self.image_size, self.image_size, 3),
                                         include_top=False, weights='imagenet')
 
-        self.train_generator, self.eval_generator = self.get_data_generators()
-        self.callback_handler.set_trained_classes(self.train_generator.class_indices)
-        number_of_classes = len(self.train_generator.class_indices)
+        if not self.is_eval:
+            self.train_generator, self.eval_generator = self.get_data_generators()
+            self.callback_handler.set_trained_classes(self.train_generator.class_indices)
+
+        number_of_classes = len(self.callback_handler.get_trained_classes())
 
         if not self.train_all:
             for layer in pre_trained_model.layers:
@@ -111,9 +114,9 @@ class InceptionV3MultiClassification:
         image = Image.open(image_path)
         image = image.resize((self.image_size, self.image_size))
         image = ImagesUtils.convert_to_numpy(image)
-        image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))
-        pred = self.model.predict(image)
-        predicted_class_indices = np.argmax(pred, axis=1)
+        image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))[:, :, :, :3]
+        pred = self.model.predict(image)[0]
+        predicted_class_indices = np.argsort(-pred)[:5]
         labels = dict((v, k) for k, v in self.callback_handler.get_trained_classes().items())
         predictions = [labels[k] for k in predicted_class_indices]
         return predictions
