@@ -22,6 +22,8 @@ class CallbacksHandler:
 
     def get_callbacks(self):
         cp_callback = ModelCheckpoint(filepath=self.checkpoint_path,
+                                      monitor='val_acc',
+                                      mode='max',
                                       save_weights_only=True,
                                       verbose=1, save_best_only=True)
         tensorboard_callback = TensorBoard(log_dir=self.logs_dir, profile_batch=0)
