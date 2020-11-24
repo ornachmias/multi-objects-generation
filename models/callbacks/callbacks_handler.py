@@ -13,6 +13,7 @@ class CallbacksHandler:
         self.logs_dir = logs_dir
         self.model_name = model_name
         if self.checkpoints_dir is not None and self.model_name is not None:
+            os.makedirs(os.path.join(self.checkpoints_dir, self.model_name), exist_ok=True)
             self.checkpoint_path = os.path.join(self.checkpoints_dir, self.model_name, 'checkpoint-best.ckpt')
             self.classes_path = os.path.join(self.checkpoints_dir, self.model_name, 'classes.pkl')
 
