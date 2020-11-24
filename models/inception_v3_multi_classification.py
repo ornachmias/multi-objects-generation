@@ -1,4 +1,5 @@
 import os
+import pickle
 
 from tensorflow.keras.applications.inception_v3 import InceptionV3
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -6,10 +7,14 @@ from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras import layers
 from tensorflow.keras import Model
 import pandas as pd
+import numpy as np
+from PIL import Image
+
+from utils.images_utils import ImagesUtils
 
 
 class InceptionV3MultiClassification:
-    def __init__(self, train_metadata_path, eval_metadata_path, image_size, learning_rate=0.0001,
+    def __init__(self, image_size, train_metadata_path=None, eval_metadata_path=None, learning_rate=0.0001,
                  dropout_rate=0.2, loss='categorical_crossentropy', batch_size=20, train_all=False):
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
@@ -23,6 +28,7 @@ class InceptionV3MultiClassification:
         self.train_all = train_all
         self.train_generator = None
         self.eval_generator = None
+        self.callback_handler = None
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
@@ -60,7 +66,7 @@ class InceptionV3MultiClassification:
                                                                 target_size=(self.image_size, self.image_size),
                                                                 shuffle=False,
                                                                 classes=classes)
-        return train_generator, validation_generator, classes
+        return train_generator, validation_generator
 
     def check_path_row_exists(self, row):
         return os.path.exists(row['path'])
@@ -68,11 +74,14 @@ class InceptionV3MultiClassification:
     def split_column(self, categories_str):
         return categories_str.split(';')
 
-    def init(self):
-        self.train_generator, self.eval_generator, classes = self.get_data_generators()
-        number_of_classes = len(classes)
+    def init(self, callback_handler):
+        self.callback_handler = callback_handler
         pre_trained_model = InceptionV3(input_shape=(self.image_size, self.image_size, 3),
                                         include_top=False, weights='imagenet')
+
+        self.train_generator, self.eval_generator = self.get_data_generators()
+        self.callback_handler.set_trained_classes(self.train_generator.class_indices)
+        number_of_classes = len(self.train_generator.class_indices)
 
         if not self.train_all:
             for layer in pre_trained_model.layers:
@@ -86,10 +95,35 @@ class InceptionV3MultiClassification:
         self.model.compile(optimizer=RMSprop(lr=self.learning_rate), loss=self.loss, metrics=['acc'])
         print(self.model.summary())
 
-    def train(self, callbacks, epochs=100):
+    def train(self, epochs=100):
+        self.load_model()
+
         history = self.model.fit(x=self.train_generator, validation_data=self.eval_generator,
                                  batch_size=self.batch_size, epochs=epochs, verbose=1,
-                                 callbacks=callbacks.get_callbacks(),
+                                 callbacks=self.callback_handler.get_callbacks(),
                                  steps_per_epoch=len(self.train_generator),
                                  validation_steps=len(self.eval_generator))
         return history
+
+    def eval(self, image_path):
+        self.load_model()
+
+        image = Image.open(image_path)
+        image = image.resize((self.image_size, self.image_size))
+        image = ImagesUtils.convert_to_numpy(image)
+        image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))
+        pred = self.model.predict(image)
+        predicted_class_indices = np.argmax(pred, axis=1)
+        labels = dict((v, k) for k, v in self.callback_handler.get_trained_classes().items())
+        predictions = [labels[k] for k in predicted_class_indices]
+        return predictions
+
+    def load_model(self):
+        if os.path.exists(self.callback_handler.checkpoint_path):
+            try:
+                print('Found checkpoints in {}, loading...'.format(self.callback_handler.checkpoint_path))
+                self.model.load_weights(self.callback_handler.checkpoint_path)
+            except Exception as e:
+                print('Failed to load checkpoints!')
+                print(e)
+

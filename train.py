@@ -11,13 +11,13 @@ from models.inception_v3_multi_classification import InceptionV3MultiClassificat
 
 parser = argparse.ArgumentParser(description='Data Classification Tool')
 parser.add_argument('-s', '--image_size', type=int, default=256)
-parser.add_argument('-t', '--train_metadata', default='./data/bbox_replace/metadata_train.csv')
-parser.add_argument('-e', '--eval_metadata', default='./data/bbox_replace/metadata_eval.csv')
+parser.add_argument('-t', '--train_metadata', default='./data/3d_front/generated_classification/train/metadata.csv')
+parser.add_argument('-e', '--eval_metadata', default='./data/3d_front/generated_classification/test/metadata.csv')
 parser.add_argument('-b', '--batch_size', type=int, default=20)
 parser.add_argument('-p', '--epochs', type=int, default=100)
 parser.add_argument('-l', '--logs_dir', default='./data/logs')
 parser.add_argument('-c', '--checkpoints_dir', default='./data/checkpoints')
-parser.add_argument('-m', '--model_name', default='inception_v3')
+parser.add_argument('-m', '--model_name', default='inception_v3_multi')
 parser.add_argument('-g', '--gpus', default='0')
 parser.add_argument('-a', '--train_all', default='false')
 parser.add_argument('-n', '--classes', default=None, type=int)
@@ -51,6 +51,6 @@ elif user_model == InputHandler.Model.inception_v3_multi:
                                            image_size=args.image_size, batch_size=args.batch_size,
                                            train_all=user_train_all)
 
-model.init()
 callbacks = CallbacksHandler(args.checkpoints_dir, args.logs_dir, model.name)
-model.train(callbacks=callbacks, epochs=args.epochs)
+model.init(callback_handler=callbacks)
+model.train(epochs=args.epochs)

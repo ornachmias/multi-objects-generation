@@ -19,6 +19,8 @@ class ImagesUtils:
             img = raw_img
         elif isinstance(raw_img, list):
             img = np.vstack(raw_img)
+        elif isinstance(raw_img, Image.Image):
+            img = np.array(raw_img)
         else:
             raise Exception('Could not handle input of type "{}"'.format(type(raw_img)))
 
