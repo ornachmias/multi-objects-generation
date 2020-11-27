@@ -36,8 +36,10 @@ class InceptionV3MultiClassification:
 
     def get_data_generators(self):
         df_train = pd.read_csv(self.train_metadata_path)
+        df_train['categories'] = df_train['categories'].map(str)
         df_train['labels'] = df_train['categories'].apply(self.split_column)
         df_eval = pd.read_csv(self.eval_metadata_path)
+        df_eval['categories'] = df_eval['categories'].map(str)
         df_eval['labels'] = df_eval['categories'].apply(self.split_column)
 
         classes = ';'.join(df_train['categories']) + ';' + ';'.join(df_eval['categories'])
@@ -76,7 +78,7 @@ class InceptionV3MultiClassification:
         return os.path.exists(row['path'])
 
     def split_column(self, categories_str):
-        return str(categories_str).split(';')
+        return categories_str.split(';')
 
     def init(self, callback_handler):
         self.callback_handler = callback_handler
