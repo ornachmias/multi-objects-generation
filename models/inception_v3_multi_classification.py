@@ -76,7 +76,7 @@ class InceptionV3MultiClassification:
         return os.path.exists(row['path'])
 
     def split_column(self, categories_str):
-        return categories_str.split(';')
+        return str(categories_str).split(';')
 
     def init(self, callback_handler):
         self.callback_handler = callback_handler
