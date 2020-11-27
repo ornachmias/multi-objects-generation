@@ -15,7 +15,8 @@ from utils.images_utils import ImagesUtils
 
 class InceptionV3MultiClassification:
     def __init__(self, image_size, train_metadata_path=None, eval_metadata_path=None, learning_rate=0.0001,
-                 dropout_rate=0.2, loss='categorical_crossentropy', batch_size=20, train_all=False, is_eval=False):
+                 dropout_rate=0.2, loss='categorical_crossentropy', batch_size=20, train_all=False, is_eval=False,
+                 model_tag=''):
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
         self.image_size = image_size
@@ -23,6 +24,8 @@ class InceptionV3MultiClassification:
         self.batch_size = batch_size
         self.model = None
         self.name = 'inception_v3_multi_classification'
+        if model_tag != '':
+            self.name += '_' + model_tag
         self.train_metadata_path = train_metadata_path
         self.eval_metadata_path = eval_metadata_path
         self.train_all = train_all
@@ -122,11 +125,17 @@ class InceptionV3MultiClassification:
         return predictions
 
     def load_model(self):
-        if os.path.exists(self.callback_handler.checkpoint_path):
-            try:
-                print('Found checkpoints in {}, loading...'.format(self.callback_handler.checkpoint_path))
-                self.model.load_weights(self.callback_handler.checkpoint_path)
-            except Exception as e:
-                print('Failed to load checkpoints!')
-                print(e)
+        try:
+            print('Found checkpoints in {}, loading...'.format(self.callback_handler.checkpoint_path))
+            self.model.load_weights(self.callback_handler.checkpoint_path)
+        except Exception as e:
+            print('Failed to load checkpoints!')
+            print(e)
+
+    def save_model(self):
+        try:
+            self.model.save_weights(self.callback_handler.checkpoint_path)
+        except Exception as e:
+            print('Failed to load checkpoints!')
+            print(e)
 

@@ -18,6 +18,7 @@ parser.add_argument('-p', '--epochs', type=int, default=100)
 parser.add_argument('-l', '--logs_dir', default='./data/logs')
 parser.add_argument('-c', '--checkpoints_dir', default='./data/checkpoints')
 parser.add_argument('-m', '--model_name', default='inception_v3_multi')
+parser.add_argument('-g', '--model_tag', default='')
 parser.add_argument('-g', '--gpus', default='0')
 parser.add_argument('-a', '--train_all', default='false')
 parser.add_argument('-n', '--classes', default=None, type=int)
@@ -49,7 +50,8 @@ elif user_model == InputHandler.Model.inception_v3_multi:
     model = InceptionV3MultiClassification(train_metadata_path=args.train_metadata,
                                            eval_metadata_path=args.eval_metadata,
                                            image_size=args.image_size, batch_size=args.batch_size,
-                                           train_all=user_train_all)
+                                           train_all=user_train_all,
+                                           model_tag=args.model_tag)
 
 callbacks = CallbacksHandler(args.checkpoints_dir, args.logs_dir, model.name)
 model.init(callback_handler=callbacks)
