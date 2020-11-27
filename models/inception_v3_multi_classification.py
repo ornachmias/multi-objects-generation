@@ -38,10 +38,11 @@ class InceptionV3MultiClassification:
         df_train = pd.read_csv(self.train_metadata_path)
         df_train['categories'] = df_train['categories'].map(str)
         df_train['labels'] = df_train['categories'].apply(self.split_column)
+        print(df_train.head(5))
         df_eval = pd.read_csv(self.eval_metadata_path)
         df_eval['categories'] = df_eval['categories'].map(str)
         df_eval['labels'] = df_eval['categories'].apply(self.split_column)
-
+        print(df_eval.head(5))
         classes = ';'.join(df_train['categories']) + ';' + ';'.join(df_eval['categories'])
         classes = list(set(classes.split(';')))
 
