@@ -34,56 +34,53 @@ parser.add_argument('-m', '--generate_compare', default='true')
 parser.add_argument('-b', '--back_object', choices=['none', 'black', 'inpaint'], default='black')
 
 args = parser.parse_args()
-user_dataset = InputHandler.Dataset.parse(args.dataset)
-user_generation_type = InputHandler.GenerationType.parse(args.generation_type)
 user_count = InputHandler.validate_positive_integer(args.count)
 user_generate_comparison = InputHandler.str2bool(args.generate_compare)
-user_back_object = InputHandler.BackgroundObject.parse(args.back_object)
 user_data_path = args.data_path
 
 InputHandler.print_params(args)
 
 dataset = None
-if user_dataset == InputHandler.Dataset.mscoco:
+if args.dataset == 'mscoco':
     dataset = Mscoco(user_data_path, [1, 2, 3, 4, 5, 6, 7, 8, 9])
-elif user_dataset == InputHandler.Dataset.object_net_3d:
+elif args.dataset == 'object_net_3d':
     dataset = ObjectNet3D(user_data_path)
-elif user_dataset == InputHandler.Dataset.test:
+elif args.dataset == 'test':
     dataset = TestDataset(user_data_path)
-elif user_dataset == InputHandler.Dataset.front_future:
+elif args.dataset == 'front_future':
     dataset = FrontFuture3D(user_data_path)
-elif user_dataset == InputHandler.Dataset.scenes_3d:
+elif args.dataset == 'scenes_3d':
     dataset = Scenes3D(user_data_path)
 
 dataset.initialize()
 
 generator = None
-cut_background = user_back_object == InputHandler.BackgroundObject.paint_black
-inpaint = user_back_object == InputHandler.BackgroundObject.inpaint
+cut_background = args.back_object == 'black'
+inpaint = args.back_object == 'inpaint'
 
-if user_generation_type == InputHandler.GenerationType.outlines:
+if args.generation_type == 'outlines':
     generator = ObjectOutline(user_data_path, dataset)
-elif user_generation_type == InputHandler.GenerationType.bbox_replace:
+elif args.generation_type == 'bboxreplace':
     generator = BoundingBoxReplace(user_data_path, dataset, compare_random=user_generate_comparison)
-elif user_generation_type == InputHandler.GenerationType.seg_replace:
+elif args.generation_type == 'segreplace':
     generator = SegmentationReplace(user_data_path, dataset, compare_random=user_generate_comparison,
                                     cut_background=cut_background, inpaint_cut=inpaint)
-elif user_generation_type == InputHandler.GenerationType.compose_3d:
+elif args.generation_type == 'compose3d':
     generator = ObjectNet3DCompose(user_data_path, dataset, compare_random=user_generate_comparison,
                                    cut_background=cut_background, inpaint_cut=inpaint)
-elif user_generation_type == InputHandler.GenerationType.test:
+elif args.generation_type == 'test':
     generator = TestDataGenerator(dataset)
-elif user_generation_type == InputHandler.GenerationType.front_future_render:
+elif args.generation_type == 'front_future_render':
     mat = np.eye(4)
     mat[1, 3] = 1
     generator = FrontFuture3DRender(dataset, ['chair'], mat, compare_random=user_generate_comparison)
-elif user_generation_type == InputHandler.GenerationType.scenes_3d_render:
+elif args.generation_type == 'scenes_3d_render':
     mat = np.eye(4)
     mat[2, 3] = 50
     generator = Scenes3DRender(dataset, ['chair'], mat, compare_random=user_generate_comparison)
-elif user_generation_type == InputHandler.GenerationType.front_model_render:
+elif args.generation_type == 'front_model_render':
     generator = FrontModelRender(dataset)
-elif user_generation_type == InputHandler.GenerationType.future_classification:
+elif args.generation_type == 'future_classification':
     generator = Future3DClassification(user_data_path)
 
 generator.generate(user_count)

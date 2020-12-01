@@ -61,60 +61,6 @@ class InputHandler:
             else:
                 argparse.ArgumentTypeError("{} is an invalid dataset.".format(i))
 
-    class GenerationType(Enum):
-        unknown = 0
-        outlines = 1
-        bbox_replace = 2
-        seg_replace = 3
-        compose_3d = 4
-        test = 5
-        front_future_render = 6
-        scenes_3d_render = 7
-        front_model_render = 8
-        future_classification = 9
-
-        @staticmethod
-        def parse(i):
-            i = i.lower()
-            if i == 'outlines':
-                return InputHandler.GenerationType.outlines
-            elif i == 'bboxreplace':
-                return InputHandler.GenerationType.bbox_replace
-            elif i == 'segreplace':
-                return InputHandler.GenerationType.seg_replace
-            elif i == 'compose3d':
-                return InputHandler.GenerationType.compose_3d
-            elif i == 'test':
-                return InputHandler.GenerationType.test
-            elif i == 'front_future_render':
-                return InputHandler.GenerationType.front_future_render
-            elif i == 'scenes_3d_render':
-                return InputHandler.GenerationType.scenes_3d_render
-            elif i == 'front_model_render':
-                return InputHandler.GenerationType.front_model_render
-            elif i == 'future_classification':
-                return InputHandler.GenerationType.future_classification
-            else:
-                argparse.ArgumentTypeError("{} is an invalid generation type.".format(i))
-
-    class BackgroundObject(Enum):
-        unknown = 0
-        none = 1
-        paint_black = 2
-        inpaint = 3
-
-        @staticmethod
-        def parse(i):
-            i = i.lower()
-            if i == 'none':
-                return InputHandler.BackgroundObject.none
-            elif i == 'black':
-                return InputHandler.BackgroundObject.paint_black
-            elif i == 'inpaint':
-                return InputHandler.BackgroundObject.inpaint
-            else:
-                argparse.ArgumentTypeError("{} is an invalid background object operation.".format(i))
-
     class ExploreOperation(Enum):
         unknown = 0
         show_image = 1
