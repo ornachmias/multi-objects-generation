@@ -11,4 +11,5 @@ generator = None
 if args.type == 'scenes_3d_bbox_render_transform':
     generator = Scenes3DBboxRenderTransform(args.data_dir)
 
+generator.initialize()
 generator.generate()
