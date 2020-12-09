@@ -28,6 +28,9 @@ class Scenes3D:
         self._categories = {}
 
     def initialize(self):
+        os.makedirs(self.scenes_3d_dir, exist_ok=True)
+        self.download_and_extract(force_init=False)
+
         with open(self._scenes_path) as f:
             scenes_lines = f.readlines()
 
@@ -69,6 +72,15 @@ class Scenes3D:
 
     def get_scene_ids(self):
         return list(self._scenes.keys())
+
+    def get_scene_metadata(self, scene_id):
+        return self._scenes[scene_id]
+
+    def get_model_path(self, model_id):
+        return os.path.join(self._models_dir, model_id + '.obj')
+
+    def get_object_category(self, model_id):
+        return self._categories[model_id]
 
     def compose_layout(self, scene_id, transform_categories, transform_matrix):
         correct_scenes, incorrect_scenes = self.compose_scene(scene_id, transform_categories, transform_matrix)
@@ -133,20 +145,6 @@ class Scenes3D:
             obj_trimesh.apply_transform(transform_matrix)
 
         scene.add_geometry(obj_trimesh)
-        return scene
-
-    def set_camera_transform(self, scene):
-        camera_transform = np.zeros((4, 4))
-        camera_transform[0, 0] = 1.
-        camera_transform[0, 3] = 123.09577675
-        camera_transform[1, 1] = 0.46565674
-        camera_transform[1, 2] = -0.88496542
-        camera_transform[1, 3] = -121.93568384
-        camera_transform[2, 1] = 0.88496542
-        camera_transform[2, 2] = 0.46565674
-        camera_transform[2, 3] = 134.79709113
-        camera_transform[3, 3] = 1.
-        scene.camera_transform = camera_transform
         return scene
 
     def get_camera_transforms(self):
