@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import trimesh
 from trimesh import Scene
+from tqdm import tqdm
 import trimesh.visual
 from PIL import Image, ImageDraw
 from trimesh.visual.material import SimpleMaterial
@@ -36,7 +37,7 @@ class Scenes3DBboxRenderTransform:
         pickle.dump(camera_transforms, open(camera_transforms_path, 'wb'))
 
         scene_ids = self.dataset.get_scene_ids()
-        for scene_id in scene_ids:
+        for scene_id in tqdm(scene_ids):
             output_metadata_path = os.path.join(self.metadata_output_dir, scene_id + '.json')
             if os.path.exists(output_metadata_path):
                 continue
