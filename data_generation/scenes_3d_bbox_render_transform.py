@@ -50,7 +50,7 @@ class Scenes3DBboxRenderTransform:
             }
 
             if not self.is_scene_valid(model_ids):
-                break
+                continue
 
             for camera_transform_index, camera_transform in enumerate(camera_transforms):
                 scene_metadata = {
