@@ -1,5 +1,6 @@
 import argparse
 
+from data_generation.scenes_3d_bbox_render_random import Scenes3DBboxRenderRandom
 from data_generation.scenes_3d_bbox_render_transform import Scenes3DBboxRenderTransform
 
 parser = argparse.ArgumentParser(description='Data Generation Tool V2')
@@ -12,7 +13,7 @@ generator = None
 if args.type == 'scenes_3d_bbox_render_transform':
     generator = Scenes3DBboxRenderTransform(args.data_dir)
 elif args.type == 'scenes_3d_bbox_render_random':
-    generator = Scenes3DBboxRenderTransform(args.data_dir)
+    generator = Scenes3DBboxRenderRandom(args.data_dir)
 
 generator.initialize()
 generator.generate()
