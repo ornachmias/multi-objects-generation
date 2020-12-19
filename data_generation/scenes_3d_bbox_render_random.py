@@ -293,7 +293,3 @@ class Scenes3DBboxRenderRandom:
                           [1.84986036e-01, 5.31302433e-01, 8.26739309e-01, 2.35591590e+02],
                           [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])]
 
-
-generator = Scenes3DBboxRenderRandom('../data')
-generator.initialize()
-generator.generate()
