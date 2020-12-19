@@ -101,7 +101,6 @@ class Scenes3DBboxRenderRandom:
         scene, model_ids = self.build_scene(scene_id, transform_matrices, apply_transform)
         scene.camera_transform = camera_transform
         scene.camera.resolution = self.output_resolution
-        scene.show()
         bboxes = self.get_bounding_boxes(scene_id, camera_transform, apply_transform)
 
         for model_id in model_ids:
