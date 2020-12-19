@@ -9,20 +9,19 @@ from tqdm import tqdm
 import trimesh.visual
 from PIL import Image, ImageDraw
 from trimesh.visual.material import SimpleMaterial
+from random import randrange
 
 from datasets.scenes_3d import Scenes3D
 from utils.images_utils import ImagesUtils
 
 
-class Scenes3DBboxRenderTransform:
+class Scenes3DBboxRenderRandom:
     def __init__(self, data_dir):
-        self.output_dir = os.path.join(data_dir, 'generated', 'scenes_3d_bbox_render_transform')
+        self.output_dir = os.path.join(data_dir, 'generated', 'scenes_3d_bbox_render_random')
         self.metadata_output_dir = os.path.join(self.output_dir, 'metadata')
         self.images_output_dir = os.path.join(self.output_dir, 'images')
         self.dataset = Scenes3D(data_dir)
         self.transform_categories = ['chair']
-        self.transform_matrix = np.eye(4)
-        self.transform_matrix[2, 3] = 50
         self.output_resolution = (640, 480)
 
     def initialize(self):
@@ -53,18 +52,35 @@ class Scenes3DBboxRenderTransform:
                 continue
 
             for camera_transform_index, camera_transform in enumerate(camera_transforms):
+                transform_matrices = self.get_random_transform_matrices(model_ids)
+
                 scene_metadata = {
                     'camera_transform_index': camera_transform_index,
                     'plausible':
-                        self.generate_single_view_scene(scene_id, camera_transform, camera_transform_index, False),
+                        self.generate_single_view_scene(scene_id, camera_transform, camera_transform_index,
+                                                        False, transform_matrices),
                     'implausible':
-                        self.generate_single_view_scene(scene_id, camera_transform, camera_transform_index, True)
+                        self.generate_single_view_scene(scene_id, camera_transform, camera_transform_index,
+                                                        True, transform_matrices)
                 }
 
                 output_metadata['generated_scenes'].append(scene_metadata)
 
             with open(output_metadata_path, 'w') as fp:
                 json.dump(output_metadata, fp)
+
+    def get_random_transform_matrices(self, model_ids):
+        num_objects = len([i for i in model_ids if self.dataset.get_object_category(i) in self.transform_categories])
+        matrices = []
+        for i in range(num_objects):
+            transform_matrix = np.eye(4)
+            transform_matrix[0, 3] = randrange(-50, 50) #(x-> going right)
+            transform_matrix[1, 3] = randrange(-50, 50) #(y-> go backward)
+            transform_matrix[2, 3] = randrange(50) #(z-> going up)
+            matrices.append((transform_matrix, trimesh.transformations.random_rotation_matrix()))
+
+        print(matrices)
+        return matrices
 
     def is_scene_valid(self, model_ids):
         is_valid = False
@@ -75,15 +91,17 @@ class Scenes3DBboxRenderTransform:
 
         return is_valid
 
-    def generate_single_view_scene(self, scene_id, camera_transform, camera_transform_index, apply_transform):
+    def generate_single_view_scene(self, scene_id, camera_transform, camera_transform_index,
+                                   apply_transform, transform_matrices):
         scene_metadata = {
             'objects': [],
             'render_path': None
         }
 
-        scene, model_ids = self.build_scene(scene_id, apply_transform)
+        scene, model_ids = self.build_scene(scene_id, transform_matrices, apply_transform)
         scene.camera_transform = camera_transform
         scene.camera.resolution = self.output_resolution
+        scene.show()
         bboxes = self.get_bounding_boxes(scene_id, camera_transform, apply_transform)
 
         for model_id in model_ids:
@@ -136,10 +154,11 @@ class Scenes3DBboxRenderTransform:
 
         return model_ids
 
-    def get_bounding_boxes(self, scene_id, camera_transform,  apply_transformation=False):
+    def get_bounding_boxes(self, scene_id, camera_transform, transform_matrices, apply_transformation=False):
         objects_metadata = self.dataset.get_scene_metadata(scene_id)['objects']
         bounding_boxes = {}
 
+        transform_index = 0
         for object_metadata in objects_metadata:
             scene = Scene()
             scene.camera_transform = camera_transform
@@ -160,10 +179,13 @@ class Scenes3DBboxRenderTransform:
             else:
                 model = self.color_model(model, (0, 0, 0))
 
-            transformation_matrix = np.reshape(object_metadata['transform'], (4, 4)).T
-            model.apply_transform(transformation_matrix)
             if apply_transformation and self.dataset.get_object_category(model_id) in self.transform_categories:
-                model.apply_transform(self.transform_matrix)
+                model.apply_transform(transform_matrices[transform_index][1])
+                model.apply_transform(transform_matrices[transform_index][0])
+                transform_index += 1
+            else:
+                transformation_matrix = np.reshape(object_metadata['transform'], (4, 4)).T
+                model.apply_transform(transformation_matrix)
 
             scene.add_geometry(model)
 
@@ -191,11 +213,12 @@ class Scenes3DBboxRenderTransform:
         y2 = int(np.max(indices[0]))
         return (x1, y1), (x2, y2)
 
-    def build_scene(self, scene_id, apply_transformation=False):
+    def build_scene(self, scene_id, transform_matrices, apply_transformation=False):
         objects_metadata = self.dataset.get_scene_metadata(scene_id)['objects']
         model_ids = []
         scene = Scene()
 
+        transform_index = 0
         for object_metadata in objects_metadata:
             model_id = object_metadata['modelID']
             if model_id is None or model_id == '':
@@ -207,10 +230,17 @@ class Scenes3DBboxRenderTransform:
 
             model_ids.append(model_id)
             model = trimesh.load(model_path)
+
             transformation_matrix = np.reshape(object_metadata['transform'], (4, 4)).T
-            model.apply_transform(transformation_matrix)
             if apply_transformation and self.dataset.get_object_category(model_id) in self.transform_categories:
-                model.apply_transform(self.transform_matrix)
+                original_transform = np.eye(4)
+                original_transform[:, 3] = transformation_matrix[:, 3]
+                model.apply_transform(transform_matrices[transform_index][1])
+                model.apply_transform(transform_matrices[transform_index][0])
+                model.apply_transform(original_transform)
+                transform_index += 1
+            else:
+                model.apply_transform(transformation_matrix)
 
             scene.add_geometry(model)
 
@@ -262,3 +292,8 @@ class Scenes3DBboxRenderTransform:
                           [-1.12491254e-01, 8.47176711e-01, -5.19266148e-01, -6.66881498e+01],
                           [1.84986036e-01, 5.31302433e-01, 8.26739309e-01, 2.35591590e+02],
                           [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])]
+
+
+generator = Scenes3DBboxRenderRandom('../data')
+generator.initialize()
+generator.generate()
