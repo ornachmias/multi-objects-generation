@@ -106,7 +106,7 @@ class Scenes3DBboxRenderTransform:
 
     def save_render(self, scene, scene_id, apply_transform, camera_transform_index):
         img = Image.open(trimesh.util.wrap_as_stream(
-            scene.save_image(background=[255, 255, 255, 0], flags={'cull': True}, resolution=None)))
+            scene.save_image(background=[255, 255, 255, 0], flags={'cull': False}, resolution=None)))
 
         filename = scene_id + '_' + str(camera_transform_index).zfill(3)
         if apply_transform:
@@ -168,7 +168,7 @@ class Scenes3DBboxRenderTransform:
             scene.add_geometry(model)
 
             img = Image.open(trimesh.util.wrap_as_stream(
-                scene.save_image(background=[255, 255, 255, 255], flags={'cull': True}, resolution=None)))
+                scene.save_image(background=[255, 255, 255, 255], flags={'cull': False}, resolution=None)))
             bbox = self.detect_bounding_box(img, [0, 0, 0, 255])
             bounding_boxes[model_id] = bbox
 
