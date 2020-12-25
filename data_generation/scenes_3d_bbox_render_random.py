@@ -79,7 +79,6 @@ class Scenes3DBboxRenderRandom:
             transform_matrix[2, 3] = randrange(50) #(z-> going up)
             matrices.append((transform_matrix, trimesh.transformations.random_rotation_matrix()))
 
-        print(matrices)
         return matrices
 
     def is_scene_valid(self, model_ids):
@@ -101,7 +100,7 @@ class Scenes3DBboxRenderRandom:
         scene, model_ids = self.build_scene(scene_id, transform_matrices, apply_transform)
         scene.camera_transform = camera_transform
         scene.camera.resolution = self.output_resolution
-        bboxes = self.get_bounding_boxes(scene_id, camera_transform, apply_transform)
+        bboxes = self.get_bounding_boxes(scene_id, camera_transform, transform_matrices, apply_transform)
 
         for model_id in model_ids:
             if 'room' in model_id:

@@ -136,7 +136,7 @@ class Scenes3DBboxRenderTransform:
 
         return model_ids
 
-    def get_bounding_boxes(self, scene_id, camera_transform,  apply_transformation=False):
+    def get_bounding_boxes(self, scene_id, camera_transform, apply_transformation=False):
         objects_metadata = self.dataset.get_scene_metadata(scene_id)['objects']
         bounding_boxes = {}
 
