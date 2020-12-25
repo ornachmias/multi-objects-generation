@@ -177,12 +177,15 @@ class Scenes3DBboxRenderRandom:
             else:
                 model = self.color_model(model, (0, 0, 0))
 
+            transformation_matrix = np.reshape(object_metadata['transform'], (4, 4)).T
             if apply_transformation and self.dataset.get_object_category(model_id) in self.transform_categories:
+                original_transform = np.eye(4)
+                original_transform[:, 3] = transformation_matrix[:, 3]
                 model.apply_transform(transform_matrices[transform_index][1])
                 model.apply_transform(transform_matrices[transform_index][0])
+                model.apply_transform(original_transform)
                 transform_index += 1
             else:
-                transformation_matrix = np.reshape(object_metadata['transform'], (4, 4)).T
                 model.apply_transform(transformation_matrix)
 
             scene.add_geometry(model)
