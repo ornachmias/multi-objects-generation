@@ -1,4 +1,4 @@
-tensorflow-gpu==1.15.0
+tensorflow-gpu==2.5.3
 flask
 git+https://github.com/JiahuiYu/neuralgym
 opencv-python~=4.3.0.36
